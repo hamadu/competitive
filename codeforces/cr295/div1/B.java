@@ -1,4 +1,4 @@
-package codeforces.cf295.div1;
+package codeforces.cr295.div1;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
