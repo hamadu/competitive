@@ -1,4 +1,4 @@
-package codechef.long201505;
+package atcoder.arc039;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,101 +7,38 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/05/09.
+ * Created by hama_du on 15/05/16.
  */
-public class DEVHAND {
-    private static final long MOD = 1_000_000_007;
-
+public class A {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
-        int T = in.nextInt();
-        while (--T >= 0) {
-            int n = in.nextInt();
-            int k = in.nextInt();
-            out.println(solve(n, k));
+
+        int a = in.nextInt();
+        int b = in.nextInt();
+
+        int max = a - b;
+        for (int p = 0 ; p <= 2 ; p++) {
+            for (char c = '0' ; c <= '9' ; c++) {
+                if (p == 0 && c == '0') {
+                    continue;
+                }
+                char[] ta = String.valueOf(a).toCharArray();
+                ta[p] = c;
+                int aa = Integer.valueOf(String.valueOf(ta));
+
+                char[] tb = String.valueOf(b).toCharArray();
+                tb[p] = c;
+                int bb = Integer.valueOf(String.valueOf(tb));
+
+                max = Math.max(max, aa - b);
+                max = Math.max(max, a - bb);
+            }
         }
+        out.println(max);
         out.flush();
     }
 
-    private static long solve(int n, int k) {
-        long[][] pw = pow(new long[][]{ {k, 1}, {0, 1} }, n, MOD);
-        long all = (pw[0][0] + pw[0][1] - 1 + MOD) % MOD;
-        all = (((all * all) % MOD) * all) % MOD;
-
-
-        long[] powK = new long[3*n+1];
-        powK[0] = 1;
-        for (int i = 1 ; i <= 3*n ; i++) {
-            powK[i] = (powK[i-1] * k) % MOD;
-        }
-
-        long sum = 0;
-        for (int a = 1 ; a <= n ; a++) {
-            for (int b = a ; b <= n ; b++) {
-                for (int c = b ; c <= n ; c++) {
-                    long ptn = (2 * powK[b+c] + powK[a+c]) % MOD;
-                    ptn += ((MOD - powK[c])) % MOD;
-                    ptn += ((MOD - powK[b+c-a])) % MOD;
-                    ptn %= MOD;
-
-                    long add = (MOD + all - ptn) % MOD;
-
-                    if (a == b && b == c) {
-                    } else if (a == b || b == c) {
-                        add *= 3;
-                    } else {
-                        add *= 6;
-                    }
-
-                    sum += add;
-                    sum %= MOD;
-
-                    // debug(a, b, c, all - ptn, all, ptn);
-                }
-            }
-        }
-        return sum;
-    }
-
-    public static long[][] pow(long[][] a, long n, long mod) {
-        long i = 1;
-        long[][] res = E(a.length);
-        long[][] ap = mul(E(a.length), a, mod);
-        while (i <= n) {
-            if ((n & i) >= 1) {
-                res = mul(res, ap, mod);
-            }
-            i *= 2;
-            ap = mul(ap, ap, mod);
-        }
-        return res;
-    }
-
-    public static long[][] E(int n) {
-        long[][] a = new long[n][n];
-        for (int i = 0 ; i < n ; i++) {
-            a[i][i] = 1;
-        }
-        return a;
-    }
-
-    public static long[][] mul(long[][] a, long[][] b, long mod) {
-        long[][] c = new long[a.length][b[0].length];
-        if (a[0].length != b.length) {
-            System.err.print("err");
-        }
-        for (int i = 0 ; i < a.length ; i++) {
-            for (int j = 0 ; j < b[0].length ; j++) {
-                long sum = 0;
-                for (int k = 0 ; k < a[0].length ; k++) {
-                    sum = (sum + a[i][k] * b[k][j]) % mod;
-                }
-                c[i][j] = sum;
-            }
-        }
-        return c;
-    }
 
     static void debug(Object... o) {
         System.err.println(Arrays.deepToString(o));

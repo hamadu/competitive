@@ -3,7 +3,7 @@ package codechef.long201505;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
  * Created by hama_du on 15/05/09.
@@ -15,12 +15,174 @@ public class SEZ {
 
         int n = in.nextInt();
         int m = in.nextInt();
-        int[][] graph = buildGraph(in, n, m);
+        int[][][] graph = splitIntoGroup(buildGraph(in, n, m));
 
-
-
-
+        int sum = 0;
+        for (int[][] g : graph) {
+            sum += solve(g);
+        }
+        out.println(sum);
         out.flush();
+    }
+
+    static int solve(int[][] graph) {
+        int n = graph.length;
+        int[][] degv = new int[n][2];
+        for (int i = 0 ; i < n ; i++) {
+            degv[i][0] = i;
+            for (int j : graph[i]) {
+                degv[i][1]++;
+            }
+        }
+        Arrays.sort(degv, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o2[1] - o1[1];
+            }
+        });
+
+        int max = 0;
+        int tr = Math.min(16, n);
+        for (int ptn = 0 ; ptn < (1<<tr) ; ptn++) {
+            boolean[] removed = new boolean[n];
+            for (int i = 0 ; i < tr ; i++) {
+                if ((ptn & (1<<i)) >= 1) {
+                    removed[degv[i][0]] = true;
+                }
+            }
+            max = Math.max(max, solve(removed, graph));
+        }
+        return max;
+    }
+
+    public static int solve(boolean[] removed, int[][] graph) {
+        int sum = 0;
+        for (boolean b : removed) {
+            if (b) {
+                sum--;
+            }
+        }
+
+        int n = graph.length;
+        while (true) {
+            boolean updated = false;
+            for (int u = 0 ; u < n ; u++) {
+                if (removed[u]) {
+                    continue;
+                }
+                int deg = 0;
+                int uv = -1;
+                for (int v : graph[u]) {
+                    if (!removed[v]) {
+                        deg++;
+                        uv = v;
+                    }
+                }
+                if (deg <= 1) {
+                    updated = true;
+                    sum += 1 - deg;
+                    removed[u] = true;
+                    if (uv != -1) {
+                        removed[uv] = true;
+                    }
+                }
+            }
+            if (!updated) {
+                break;
+            }
+        }
+        return sum;
+    }
+
+    static int[][][] splitIntoGroup(int[][] graph) {
+        int n = graph.length;
+        UnionFind uf = new UnionFind(n);
+        for (int i = 0 ; i < n ; i++) {
+            for (int j : graph[i]) {
+                uf.unite(i, j);
+            }
+        }
+
+        Set<Integer> gset = new HashSet<>();
+        for (int i = 0 ; i < n ; i++) {
+            gset.add(uf.find(i));
+        }
+        int gn = gset.size();
+        int[][][] groupedGraph = new int[gn][][];
+        int[] map = new int[n];
+        int[] rmap = new int[n];
+        int gid = 0;
+        Arrays.fill(map, -1);
+        for (int i = 0 ; i < n ; i++) {
+            if (map[i] != -1) {
+                continue;
+            }
+            int group = uf.find(i);
+            int vid = 0;
+
+            for (int j = 0 ; j < n ; j++) {
+                if (uf.find(j) == group) {
+                    map[j] = vid;
+                    rmap[vid] = j;
+                    vid++;
+                }
+            }
+
+            int[][] subgraph = new int[vid][];
+            for (int j = 0 ; j < vid ; j++) {
+                int baseId = rmap[j];
+                subgraph[j] = graph[baseId].clone();
+                for (int k = 0 ; k < graph[baseId].length ; k++) {
+                    subgraph[j][k] = map[graph[baseId][k]];
+                }
+            }
+            groupedGraph[gid] = subgraph;
+            gid++;
+        }
+
+        return groupedGraph;
+
+
+    }
+
+
+    static class UnionFind {
+        int[] parent, rank;
+        UnionFind(int n) {
+            parent = new int[n];
+            rank = new int[n];
+            for (int i = 0 ; i < n ; i++) {
+                parent[i] = i;
+                rank[i] = 0;
+            }
+        }
+
+        int find(int x) {
+            if (parent[x] == x) {
+                return x;
+            }
+            parent[x] = find(parent[x]);
+            return parent[x];
+        }
+
+        void unite(int x, int y) {
+            x = find(x);
+            y = find(y);
+            if (x == y) {
+                return;
+            }
+            if (rank[x] < rank[y]) {
+                parent[x] = y;
+            } else {
+                parent[y] = x;
+                if (rank[x] == rank[y]) {
+                    rank[x]++;
+                }
+            }
+        }
+        boolean issame(int x, int y) {
+            return (find(x) == find(y));
+        }
     }
 
     static int[][] buildGraph(InputReader in, int n, int m) {
@@ -46,55 +208,8 @@ public class SEZ {
         return graph;
     }
 
-    private static int solve(char[] s, int k) {
-        if (k == 2) {
-            return solve2(s);
-        }
-
-        int cnt = 0;
-        int n = s.length;
-        for (int i = 0 ; i < n ;) {
-            int fr = i;
-            int to = i;
-            while (to < n && s[fr] == s[to]) {
-                to++;
-            }
-            int fi = fr + k - 1;
-            while (fi < to) {
-                s[fi] = flip(s[fi]);
-                fi += k;
-                cnt++;
-            }
-            if (to != n && (to - fr) % k == 0) {
-                s[to-2] = flip(s[to-2]);
-                s[to-1] = flip(s[to-1]);
-            }
-            i = to;
-        }
-        return cnt;
-    }
-
-    private static char flip(char s) {
-        return s == '0' ? '1' : '0';
-    }
-
-    private static int solve2(char[] s) {
-        int n = s.length;
-        int zero = 0;
-        int one = 0;
-        for (int i = 0 ; i < n ; i++) {
-            if (s[i] == ('0' + (i % 2))) {
-                zero++;
-            } else {
-                one++;
-            }
-        }
-
-        int d = (zero < one) ? 1 : 0;
-        for (int i = 0 ; i < n ; i++) {
-            s[i] = (char)('0' + ((i + d) % 2));
-        }
-        return Math.min(zero, one);
+    static void debug(Object... o) {
+        System.err.println(Arrays.deepToString(o));
     }
 
     static class InputReader {
