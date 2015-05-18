@@ -4,3 +4,7 @@
 /ztmp
 .idea
 /out
+
+# private 
+/paiza/skillcheck/**/*
+
