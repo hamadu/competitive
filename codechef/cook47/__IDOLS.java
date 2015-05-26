@@ -11,7 +11,9 @@ import java.util.List;
 /**
  * Created by dhamada on 15/05/23.
  */
-public class IDOLS {
+public class __IDOLS {
+
+    static int[] A;
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
@@ -19,12 +21,12 @@ public class IDOLS {
 
         int n = in.nextInt();
         int q = in.nextInt();
+        A = new int[n];
+        for (int i = 0; i < n ; i++) {
+            A[i] = in.nextInt();
+        }
 
         int[][] graph = buildGraph(in, n, n-1);
-        int[] a = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
 
         HeavyLightDecomposer hl = new HeavyLightDecomposer(graph, 0);
         hl.decompose(0, 0, -1, 0);
@@ -33,76 +35,133 @@ public class IDOLS {
         while (--q >= 0) {
             int type = in.nextInt();
             int x = in.nextInt() - 1;
-            if (type == 0) {
+            if (type == 1) {
                 // q
+                int currentHead = x;
+                int[] dataRight = { Integer.MAX_VALUE, 0, 0 };
+                while (true) {
+                    int groupId = hl.gid[currentHead];
+                    int idxInGroup = hl.orderInGroup[currentHead];
+
+                    SegmentTree gseg = hl.components[groupId].seg;
+                    int[] left = gseg.range(0, idxInGroup+1);
+
+                    int vl = A[hl.components[groupId].idx[left[0]]];
+                    dataRight = SegmentTree.compute(hl.depth[hl.components[groupId].idx[left[0]]], left[1], vl, dataRight[0], dataRight[1], dataRight[2]);
+                    if (groupId == 0) {
+                        break;
+                    }
+                    int groupHead = hl.components[groupId].head;
+                    currentHead = hl.parent[groupHead];
+                }
+                int head = dataRight[0];
+                int ov = dataRight[2];
+
+                out.println((ov + hl.depth[x] - head) + " " + dataRight[1]);
             } else {
                 // upd
                 int newValue = in.nextInt();
-                a[x] = newValue;
-
+                A[x] = newValue;
+                int groupId = hl.gid[x];
+                int idxInGroup = hl.orderInGroup[x];
+                hl.components[groupId].seg.update(idxInGroup, newValue);
             }
         }
-
-
-
-
         out.flush();
     }
 
     public static class SegmentTree {
         int N;
         int M;
+        int[] baseData;
+
         int[] seg;
+        int[] cnt;
 
         public SegmentTree(int[] data) {
-            N = Integer.highestOneBit(data.length-1)<<2;
+            N = Integer.highestOneBit(Math.max(1, data.length-1))<<2;
             M = (N >> 1) - 1;
+            baseData = data;
 
             seg = new int[N];
+            cnt = new int[N];
             Arrays.fill(seg, Integer.MAX_VALUE);
             for (int i = 0 ; i < data.length ; i++) {
-                seg[M+i] = data[i];
+                seg[M+i] = i;
+                cnt[M+i] = 1;
             }
             for (int i = M-1 ; i >= 0 ; i--) {
-                seg[i] = compute(i);
+                compute(i);
             }
         }
 
         public void update(int idx, int value) {
-            seg[M+idx] = value;
+            baseData[idx] = value;
             int i = M+idx;
             while (true) {
                 i = (i-1) >> 1;
-                seg[i] = compute(i);
+                compute(i);
                 if (i == 0) {
                     break;
                 }
             }
         }
 
-
-        public int compute(int i) {
-            return Math.min(seg[i*2+1], seg[i*2+2]);
+        public void compute(int i) {
+            int l = i*2+1;
+            int r = i*2+2;
+            int[] f = compute(seg[l], cnt[l], seg[r], cnt[r]);
+            seg[i] = f[0];
+            cnt[i] = f[1];
         }
 
-
-        public int min(int l, int r) {
-            return min(l, r, 0, 0, M+1);
+        public int[] compute(int segl, int cntl, int segr, int cntr) {
+            int vl = segl == Integer.MAX_VALUE ? -1 : baseData[segl];
+            int vr = segr == Integer.MAX_VALUE ? -1 : baseData[segr];
+            return compute(segl, cntl, vl, segr, cntr, vr);
         }
 
-        public int min(int l, int r, int idx, int fr, int to) {
+        static int ptolr;
+
+        public static int[] compute(int segl, int cntl, int vl, int segr, int cntr, int vr) {
+            int tolr = 0;
+            if (segl == Integer.MAX_VALUE) {
+                tolr = 1;
+            } else if (segr == Integer.MAX_VALUE) {
+                tolr = -1;
+            } else {
+                int tov = vl + (segr - segl);
+                if (tov < vr) {
+                    tolr = 1;
+                } else if (vr < tov) {
+                    tolr = -1;
+                }
+            }
+            ptolr = tolr;
+            if (tolr == 0) {
+                return new int[] {segl, cntl+cntr, vl};
+            } else if (tolr == -1) {
+                return new int[] {segl, cntl, vl};
+            } else {
+                return new int[] {segr, cntr, vr};
+            }
+        }
+
+        public int[] range(int l, int r) {
+            return range(l, r, 0, 0, M + 1);
+        }
+
+        public int[] range(int l, int r, int idx, int fr, int to) {
             if (to <= l || r <= fr) {
-                return Integer.MAX_VALUE;
+                return new int[]{ Integer.MAX_VALUE, 0};
             }
             if (l <= fr && to <= r) {
-                return seg[idx];
+                return new int[]{ seg[idx], cnt[idx] };
             }
-
             int med = (fr+to) / 2;
-            int ret = Integer.MAX_VALUE;
-            ret = Math.min(ret, min(l, r, idx*2+1, fr, med));
-            ret = Math.min(ret, min(l, r, idx*2+2, med, to));
-            return ret;
+            int[] left = range(l, r, idx*2+1, fr, med);
+            int[] right = range(l, r, idx*2+2, med, to);
+            return compute(left[0], left[1], right[0], right[1]);
         }
     }
 
@@ -121,6 +180,9 @@ public class IDOLS {
             parentGid = pgid;
 
             int[] v = new int[n];
+            for (int i = 0 ; i < n ; i++) {
+                v[i] = A[idx[i]];
+            }
             seg = new SegmentTree(v);
         }
     }
@@ -129,6 +191,7 @@ public class IDOLS {
         int n;
         int[][] graph;
         int[] parent;
+        int[] depth;
         int[] children;
 
         int[] gid;
@@ -138,23 +201,25 @@ public class IDOLS {
         HLComponent[] components;
 
         public HeavyLightDecomposer(int[][] g, int root) {
-            n = graph.length;
+            n = g.length;
             graph = g;
             parent = new int[n];
+            depth = new int[n];
             children = new int[n];
             gid = new int[n];
             orderInGroup = new int[n];
             parentGid = new int[n];
 
-            dfs0(root, -1);
+            dfs0(root, -1, 0);
         }
 
-        public int dfs0(int now, int par) {
+        public int dfs0(int now, int par, int d) {
             children[now] = 1;
             parent[now] = par;
+            depth[now] = d;
             for (int to : graph[now]) {
                 if (to != par) {
-                    children[now] += dfs0(to, now);
+                    children[now] += dfs0(to, now, d+1);
                 }
             }
             return children[now];
@@ -168,7 +233,7 @@ public class IDOLS {
             int maxTo = -1;
             int max = -1;
             for (int to : graph[head]) {
-                if (parent[to] != head) {
+                if (to != parent[head]) {
                     if (max < children[to]) {
                         max = children[to];
                         maxTo = to;
@@ -184,8 +249,8 @@ public class IDOLS {
 
             // light
             for (int to : graph[head]) {
-                if (parent[to] != head && to != maxTo) {
-                    decompose(to, retGid++, gi, 0);
+                if (to != parent[head] && to != maxTo) {
+                    retGid = decompose(to, retGid+1, gi, 0);
                 }
             }
             return retGid;
@@ -198,7 +263,7 @@ public class IDOLS {
             }
 
             components = new HLComponent[maxG];
-            int[] que = new int[n*2];
+            int[] que = new int[n*3];
             int qh = 0;
             int qt = 0;
             que[qh++] = 0;
@@ -213,10 +278,10 @@ public class IDOLS {
                     ids.add(now);
                     int next = -1;
                     for (int to : graph[now]) {
-                        if (gid[head] != gid[to]) {
+                        if (gid[head] != gid[to] && to != parent[now]) {
                             que[qh++] = to;
                             que[qh++] = gid[head];
-                        } else {
+                        } else if (to != parent[now]) {
                             next = to;
                         }
                     }
@@ -234,8 +299,6 @@ public class IDOLS {
                 components[gid[head]] = new HLComponent(head, parentGid, aids);
             }
         }
-
-
     }
 
 
