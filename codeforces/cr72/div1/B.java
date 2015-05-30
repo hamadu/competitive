@@ -1,97 +1,91 @@
-package codeforces.cr305.div1;
+package codeforces.cr72.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.InputMismatchException;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
- * Created by dhamada on 15/05/28.
+ * Created by dhamada on 15/05/30.
  */
-public class A {
+public class B {
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
+        long K = in.nextLong();
+
+        int[] m = new int[n];
         int[][] a = new int[n][2];
+        long total = 0;
         for (int i = 0; i < n ; i++) {
             a[i][0] = in.nextInt();
             a[i][1] = i;
+            total += a[i][0];
+
+            m[i] = a[i][0];
+        }
+        if (total < K) {
+            out.println("-1");
+            out.flush();
+            return;
         }
 
         Arrays.sort(a, new Comparator<int[]>() {
             @Override
             public int compare(int[] o1, int[] o2) {
-                return o2[0] - o1[0];
+                return o1[0] - o2[0];
             }
         });
 
-        TreeSet<Segment> segments = new TreeSet<>();
-        segments.add(new Segment(-10, -10));
-        segments.add(new Segment(n+10, n+10));
-
-
-        int[] ans = new int[n];
-        int currentMax = 0;
+        long cur = 0;
         for (int i = 0 ; i < n ;) {
-            int to = i;
-            while (to < n && a[to][0] == a[i][0]) {
-                to++;
+            long left = n - i;
+            int j = i;
+            while (j < n && a[i][0] == a[j][0]) {
+                j++;
             }
+            long doit = left * (a[i][0] - cur);
+            if (doit >= K) {
+                int doe = (int)(K % left);
+                int dec = (int)(K / left + cur);
 
-            int toMax = currentMax;
-            for (int j = i ; j < to ; j++) {
-                int pos = a[j][1];
-                Segment seg = new Segment(pos, pos);
-                Segment left = segments.lower(seg);
-                Segment right = segments.higher(seg);
-                if (left.to + 1 == pos) {
-                    // merge left
-                    segments.remove(left);
-                    seg.fr = left.fr;
+
+                List<Integer> notFinished = new ArrayList<>();
+                for (int k = 0 ; k < n ; k++) {
+                    if (m[k] > dec) {
+                        m[k] -= dec;
+                        notFinished.add(k);
+                    }
                 }
-                if (pos + 1 == right.fr) {
-                    // merge right
-                    segments.remove(right);
-                    seg.to = right.to;
+
+                List<Integer> answer = new ArrayList<>();
+                for (int k = doe ; k < notFinished.size() ; k++) {
+                    answer.add(notFinished.get(k));
                 }
-                segments.add(seg);
-                toMax = Math.max(toMax, seg.to - seg.fr + 1);
-            }
+                for (int k = 0 ; k < doe ; k++) {
+                    if (m[notFinished.get(k)] >= 2) {
+                        answer.add(notFinished.get(k));
+                    }
+                }
 
-            for (int c = currentMax ; c < toMax ; c++) {
-                ans[c] = a[i][0];
+                StringBuilder line = new StringBuilder();
+                for (int ai : answer) {
+                    line.append(' ').append(ai+1);
+                }
+                if (line.length() >= 1) {
+                    out.println(line.substring(1));
+                }
+                break;
+            } else {
+                K -= doit;
             }
-            i = to;
-            currentMax = toMax;
+            cur = a[i][0];
+            i = j;
         }
-
-        StringBuilder line = new StringBuilder();
-        for (int i = 0; i < n ; i++) {
-            line.append(' ').append(ans[i]);
-        }
-        out.println(line.substring(1));
         out.flush();
-    }
-
-    static class Segment implements Comparable<Segment> {
-        int fr;
-        int to;
-
-        public Segment(int fr, int to) {
-            this.fr = fr;
-            this.to = to;
-        }
-
-        @Override
-        public int compareTo(Segment o) {
-            return fr - o.fr;
-        }
     }
 
     static class InputReader {
