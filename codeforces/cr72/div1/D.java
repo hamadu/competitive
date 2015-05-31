@@ -55,33 +55,25 @@ public class D {
     static int[] primes = generatePrimes(1000000);
 
     private static long solveSmall(long upto, long basePrime) {
-        int idx = -1;
-        for (int pi = 0 ; pi < primes.length ; pi++) {
-            if (primes[pi] == basePrime) {
-                idx = pi;
-                break;
-            }
-        }
+        cnt = 0;
+        dfs(upto / basePrime, basePrime, 1, 0, 1);
+        return cnt;
+    }
 
-        long sum = 0;
-        int pt = 1<<idx;
-        for (int i = 0 ; i < pt ; i++) {
-            long mul = basePrime;
-            for (int k = 0 ; k < pt ; k++) {
-                if ((i & (1<<k)) >= 1) {
-                    mul *= primes[k];
-                    if (mul > upto) {
-                        mul = -1;
-                        break;
-                    }
-                }
-            }
-            if (mul >= 1) {
-                int sign = (Integer.bitCount(i) % 2 == 1) ? -1 : 1;
-                sum += (upto / mul) * sign;
-            }
+    private static long cnt;
+
+    private static void dfs(long limit, long base, long mul, int idx, int sgn) {
+        if (mul > limit) {
+            return;
         }
-        return sum;
+        cnt += sgn * limit / mul;
+        while (primes[idx] < base) {
+            long tm = mul * primes[idx];
+            if (tm <= limit) {
+                dfs(limit, base, tm, idx + 1, -sgn);
+            }
+            idx++;
+        }
     }
 
     static int[] generatePrimes(int upto) {
