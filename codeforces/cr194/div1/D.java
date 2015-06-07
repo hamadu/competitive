@@ -6,77 +6,58 @@ import java.io.PrintWriter;
 import java.util.*;
 
 /**
- * Created by dhamada on 15/06/04.
+ * Created by hama_du on 15/06/03.
  */
-public class C {
+public class D {
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int GETA = 10000;
-        List<String>[] rightList = new List[GETA*2];
-        for (int i = 0 ; i < rightList.length ; i++) {
-            rightList[i] = new ArrayList<>();
-        }
-
-        for (int r = 0 ; r <= 9999 ; r++) {
-            String line = "";
-            int rr = r;
-            for (int i = 0 ; i < 4 ; i++) {
-                int d = rr % 10;
-                line = d + line;
-                rr /= 10;
-            }
-            Set<Integer> list = dfs(line, 0, 4);
-            for (int l : list) {
-                if (0 <= GETA+l && GETA+l < rightList.length) {
-                    rightList[GETA+l].add(line);
-                }
-            }
-        }
-
-        int k = in.nextInt();
+        int n = in.nextInt();
         int m = in.nextInt();
+        int[][] a = new int[n][m];
 
-        for (int r = 0 ; r <= 9999 ; r++) {
-            String left = "";
-            int rr = r;
-            for (int i = 0 ; i < 4 ; i++) {
-                int d = rr % 10;
-                left = d + left;
-                rr /= 10;
-            }
 
-            int want = Math.abs(r - k) + GETA;
-            if (m >= 1 && want < rightList.length) {
-                for (String right : rightList[want]) {
-                    out.println(left + right);
-                    if (--m <= 0) {
-                        break;
-                    }
-                }
+        int[][] num = new int[n*m][3];
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < m ; j++) {
+                a[i][j] = in.nextInt();
+                num[i*m+j][0] = i;
+                num[i*m+j][1] = j;
+                num[i*m+j][2] = a[i][j];
             }
         }
+        Arrays.sort(num, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o2[2] - o1[2];
+            }
+        });
+
+        List<Integer>[] placed = new List[n];
+        for (int i = 0 ; i < n ; i++) {
+            placed[i] = new ArrayList<>();
+        }
+        int[] cnt = new int[m*m];
+        int answer = -1;
+        sch: for (int[] entry : num) {
+            int y = entry[0];
+            int x = entry[1];
+            for (int pl : placed[y]) {
+                int min = Math.min(pl, x);
+                int max = pl + x - min;
+                int pairID = min * m + max;
+                cnt[pairID]++;
+                if (cnt[pairID] >= 2) {
+                    answer = entry[2];
+                    break sch;
+                }
+            }
+            placed[y].add(x);
+        }
+        out.println(answer);
         out.flush();
-    }
-
-    private static Set<Integer> dfs(String line, int f, int t) {
-        Set<Integer> ret = new HashSet<>();
-
-        ret.add(Integer.valueOf(line.substring(f, t)));
-        for (int med = f+1 ; med < t ; med++) {
-            Set<Integer> left = dfs(line, f, med);
-            Set<Integer> right = dfs(line, med, t);
-            for (int l : left) {
-                for (int r : right) {
-                    ret.add(l + r);
-                    ret.add(l - r);
-                    ret.add(l * r);
-                }
-            }
-        }
-        return ret;
     }
 
     static class InputReader {

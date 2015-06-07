@@ -3,8 +3,7 @@ package codeforces.cr204.div1;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
  * Created by dhamada on 15/06/04.
@@ -15,24 +14,69 @@ public class C {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int[] a = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+        int GETA = 10000;
+        List<String>[] rightList = new List[GETA*2];
+        for (int i = 0 ; i < rightList.length ; i++) {
+            rightList[i] = new ArrayList<>();
         }
-        int tor = 0;
-        for (int i = 0 ; i < n ; i++) {
-            for (int j = i+1; j < n ; j++) {
-                if (a[i] > a[j]) {
-                    tor++;
+
+        for (int r = 0 ; r <= 9999 ; r++) {
+            String line = "";
+            int rr = r;
+            for (int i = 0 ; i < 4 ; i++) {
+                int d = rr % 10;
+                line = d + line;
+                rr /= 10;
+            }
+            Set<Integer> list = dfs(line, 0, 4);
+            for (int l : list) {
+                if (0 <= GETA+l && GETA+l < rightList.length) {
+                    rightList[GETA+l].add(line);
                 }
             }
         }
-        int ans = tor % 2;
-        ans += (tor / 2) * 4;
 
-        out.println(ans);
+        int k = in.nextInt();
+        int m = in.nextInt();
+
+        for (int r = 0 ; r <= 9999 ; r++) {
+            String left = "";
+            int rr = r;
+            for (int i = 0 ; i < 4 ; i++) {
+                int d = rr % 10;
+                left = d + left;
+                rr /= 10;
+            }
+
+            int want = Math.abs(r - k) + GETA;
+            if (m >= 1 && want < rightList.length) {
+                for (String right : rightList[want]) {
+                    out.println(left + right);
+                    if (--m <= 0) {
+                        break;
+                    }
+                }
+            }
+        }
         out.flush();
+    }
+
+    private static Set<Integer> dfs(String line, int f, int t) {
+        Set<Integer> ret = new HashSet<>();
+
+        ret.add(Integer.valueOf(line.substring(f, t)));
+        for (int med = f+1 ; med < t ; med++) {
+            Set<Integer> left = dfs(line, f, med);
+            Set<Integer> right = dfs(line, med, t);
+            for (int l : left) {
+                for (int r : right) {
+                    ret.add(l + r);
+                    ret.add(l - r);
+                    ret.add(l * r);
+                }
+            }
+        }
+        return ret;
     }
 
     static class InputReader {
