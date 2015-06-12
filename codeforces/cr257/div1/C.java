@@ -1,122 +1,88 @@
-package codeforces.cr285.div1;
+package codeforces.cr257.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.InputMismatchException;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Created by hama_du on 15/05/19.
+ * Created by dhamada on 15/06/10.
  */
 public class C {
-
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] a = new int[n];
-        int[] deg = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt()-1;
-            deg[a[i]]++;
-        }
-        int odd = 0;
-        int oddNum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            odd += deg[i] % 2;
-            if (deg[i] % 2 == 1) {
-                oddNum = i;
-            }
-        }
-        if (odd > n % 2) {
-            out.println(0);
-            out.flush();
-            return;
-        }
+        int[] pair = new int[n+1];
+        Arrays.fill(pair, -1);
+        pair[1] = Integer.MAX_VALUE;
 
-        boolean cng = true;
-        for (int i = 0 ; i < n ; i++) {
-            if (a[i] != a[n-1-i]) {
-                cng = false;
-                break;
-            }
-        }
-        if (cng) {
-            out.println(1L * n * (n+1) / 2);
-            out.flush();
-            return;
-        }
+        int[] pr = generatePrimes(200000);
+        List<int[]> ans = solveA(n, pr);
 
-        int head = 0;
-        while (a[head] == a[n-1-head]) {
-            head++;
+        out.println(ans.size());
+        for (int[] l : ans) {
+            out.println(l[0] + " " + l[1]);
         }
-        int tail = (n-1)/2;
-        while (a[tail] == a[n-1-tail]) {
-            if (tail == n-1-tail && a[tail] != oddNum) {
-                break;
-            }
-            tail--;
-        }
-
-        int[] cnt = new int[n];
-        for (int i = 0 ; i < n/2 ; i++) {
-            if (i != n-1-i) {
-                cnt[a[i]]++;
-            }
-            cnt[a[n-1-i]]++;
-        }
-        int[] need = new int[n];
-        int needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            need[i] = (cnt[i] + 1) / 2;
-            needSum += need[i];
-        }
-
-        Arrays.fill(cnt, 0);
-        int right = -1;
-        for (int r = head ; r < n ; r++) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
-                }
-            }
-            if (needSum == 0) {
-                right = r;
-                break;
-            }
-        }
-
-        Arrays.fill(cnt, 0);
-        needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            needSum += need[i];
-        }
-
-        int left = -1;
-        for (int r = n-1-head ; r >= 0 ; r--) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
-                }
-            }
-            if (needSum == 0) {
-                left = r;
-                break;
-            }
-        }
-
-        long ans = (head+1L)*(n-right)+(head+1L)*(left+1L);
-        ans -= (head+1L)*(head+1L);
-
-        out.println(ans);
         out.flush();
+    }
+
+    static List<int[]> solveA(int n, int[] pr) {
+        int[] pair = new int[n+1];
+        Arrays.fill(pair, -1);
+        pair[1] = 1;
+
+        List<int[]> ans = new ArrayList<>();
+        for (int p = pr.length-1 ; p >= 0 ; p--) {
+            int d = pr[p];
+            List<Integer> lf = new ArrayList<>();
+            int now = d;
+            while (now <= n) {
+                if (pair[now] == -1) {
+                    lf.add(now);
+                }
+                now += d;
+            }
+            Collections.sort(lf, new Comparator<Integer>() {
+                @Override
+                public int compare(Integer o1, Integer o2) {
+                    return (o2 % 2) - (o1 % 2);
+                }
+            });
+            for (int i = 0 ; i+1 < lf.size() ; i += 2) {
+                int a = lf.get(i);
+                int b = lf.get(i+1);
+                pair[a] = b;
+                pair[b] = a;
+                ans.add(new int[]{a, b});
+            }
+        }
+        return ans;
+    }
+
+    static int[] generatePrimes(int upto) {
+        boolean[] isp = new boolean[upto];
+        Arrays.fill(isp, true);
+
+        int pi = 0;
+        for (int i = 2; i < upto ; i++) {
+            if (isp[i]) {
+                pi++;
+                for (int j = i * 2; j < upto; j += i) {
+                    isp[j] = false;
+                }
+            }
+        }
+
+        int[] ret = new int[pi];
+        int ri = 0;
+        for (int i = 2 ; i < upto ; i++) {
+            if (isp[i]) {
+                ret[ri++] = i;
+            }
+        }
+        return ret;
     }
 
     static class InputReader {

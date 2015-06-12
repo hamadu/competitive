@@ -1,121 +1,21 @@
-package codeforces.cr285.div1;
+package codeforces.cr272.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.InputMismatchException;
-import java.util.Map;
 
 /**
- * Created by hama_du on 15/05/19.
+ * Created by dhamada on 15/06/07.
  */
-public class C {
-
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int[] a = new int[n];
-        int[] deg = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt()-1;
-            deg[a[i]]++;
-        }
-        int odd = 0;
-        int oddNum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            odd += deg[i] % 2;
-            if (deg[i] % 2 == 1) {
-                oddNum = i;
-            }
-        }
-        if (odd > n % 2) {
-            out.println(0);
-            out.flush();
-            return;
-        }
+        char[] c = in.nextToken().toCharArray();
 
-        boolean cng = true;
-        for (int i = 0 ; i < n ; i++) {
-            if (a[i] != a[n-1-i]) {
-                cng = false;
-                break;
-            }
-        }
-        if (cng) {
-            out.println(1L * n * (n+1) / 2);
-            out.flush();
-            return;
-        }
-
-        int head = 0;
-        while (a[head] == a[n-1-head]) {
-            head++;
-        }
-        int tail = (n-1)/2;
-        while (a[tail] == a[n-1-tail]) {
-            if (tail == n-1-tail && a[tail] != oddNum) {
-                break;
-            }
-            tail--;
-        }
-
-        int[] cnt = new int[n];
-        for (int i = 0 ; i < n/2 ; i++) {
-            if (i != n-1-i) {
-                cnt[a[i]]++;
-            }
-            cnt[a[n-1-i]]++;
-        }
-        int[] need = new int[n];
-        int needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            need[i] = (cnt[i] + 1) / 2;
-            needSum += need[i];
-        }
-
-        Arrays.fill(cnt, 0);
-        int right = -1;
-        for (int r = head ; r < n ; r++) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
-                }
-            }
-            if (needSum == 0) {
-                right = r;
-                break;
-            }
-        }
-
-        Arrays.fill(cnt, 0);
-        needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            needSum += need[i];
-        }
-
-        int left = -1;
-        for (int r = n-1-head ; r >= 0 ; r--) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
-                }
-            }
-            if (needSum == 0) {
-                left = r;
-                break;
-            }
-        }
-
-        long ans = (head+1L)*(n-right)+(head+1L)*(left+1L);
-        ans -= (head+1L)*(head+1L);
-
-        out.println(ans);
         out.flush();
     }
 

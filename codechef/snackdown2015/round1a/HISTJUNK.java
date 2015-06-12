@@ -1,122 +1,79 @@
-package codeforces.cr285.div1;
+package codechef.snackdown2015.round1a;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.InputMismatchException;
-import java.util.Map;
+import java.util.List;
 
 /**
- * Created by hama_du on 15/05/19.
+ * Created by dhamada on 15/06/12.
  */
-public class C {
+public class HISTJUNK {
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int[] a = new int[n];
-        int[] deg = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt()-1;
-            deg[a[i]]++;
-        }
-        int odd = 0;
-        int oddNum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            odd += deg[i] % 2;
-            if (deg[i] % 2 == 1) {
-                oddNum = i;
-            }
-        }
-        if (odd > n % 2) {
-            out.println(0);
-            out.flush();
-            return;
-        }
-
-        boolean cng = true;
-        for (int i = 0 ; i < n ; i++) {
-            if (a[i] != a[n-1-i]) {
-                cng = false;
-                break;
-            }
-        }
-        if (cng) {
-            out.println(1L * n * (n+1) / 2);
-            out.flush();
-            return;
-        }
-
-        int head = 0;
-        while (a[head] == a[n-1-head]) {
-            head++;
-        }
-        int tail = (n-1)/2;
-        while (a[tail] == a[n-1-tail]) {
-            if (tail == n-1-tail && a[tail] != oddNum) {
-                break;
-            }
-            tail--;
-        }
-
-        int[] cnt = new int[n];
-        for (int i = 0 ; i < n/2 ; i++) {
-            if (i != n-1-i) {
-                cnt[a[i]]++;
-            }
-            cnt[a[n-1-i]]++;
-        }
-        int[] need = new int[n];
-        int needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            need[i] = (cnt[i] + 1) / 2;
-            needSum += need[i];
-        }
-
-        Arrays.fill(cnt, 0);
-        int right = -1;
-        for (int r = head ; r < n ; r++) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
+        int T = in.nextInt();
+        while (--T >= 0) {
+            int n = in.nextInt();
+            int m = in.nextInt();
+            int[][] edges = new int[m][2];
+            for (int i = 0 ; i < m ; i++) {
+                for (int j = 0; j < 2 ; j++) {
+                    edges[i][j] = in.nextInt()-1;
                 }
             }
-            if (needSum == 0) {
-                right = r;
-                break;
+            List<String> ans = solve(n, m, edges);
+            for (String a : ans) {
+                out.println(a);
             }
         }
-
-        Arrays.fill(cnt, 0);
-        needSum = 0;
-        for (int i = 0; i < n ; i++) {
-            needSum += need[i];
-        }
-
-        int left = -1;
-        for (int r = n-1-head ; r >= 0 ; r--) {
-            if (r <= tail || n-1-tail <= r || true) {
-                cnt[a[r]]++;
-                if (cnt[a[r]] - 1 < need[a[r]]) {
-                    needSum--;
-                }
-            }
-            if (needSum == 0) {
-                left = r;
-                break;
-            }
-        }
-
-        long ans = (head+1L)*(n-right)+(head+1L)*(left+1L);
-        ans -= (head+1L)*(head+1L);
-
-        out.println(ans);
         out.flush();
+    }
+
+    private static List<String> solve(int n, int m, int[][] edges) {
+        List<String> answers = new ArrayList<>();
+        if (n <= 2 || (n == 3 && m == 3)) {
+            answers.add("0 0");
+            return answers;
+        }
+        int[] deg = new int[n];
+        for (int[] e : edges) {
+            deg[e[0]]++;
+            deg[e[1]]++;
+        }
+
+        if (n == 3) {
+            int c = -1;
+            for (int i = 0 ; i < 3 ; i++) {
+                if (deg[i] == 2) {
+                    c = i+1;
+                    break;
+                }
+            }
+            answers.add("2 3");
+            for (int k = 1 ; k <= 3 ; k++) {
+                if (k == c) {
+                    answers.add(k + " 5");
+                } else {
+                    answers.add(k + " 4");
+                }
+            }
+            return answers;
+        }
+
+        answers.add("4 " + (2*n+2));
+        for (int i = 1 ; i <= n ; i++) {
+            answers.add(i + " " + (n+1));
+            answers.add(i + " " + (n+2));
+        }
+        answers.add((n+1) + " " + (n+3));
+        answers.add((n+2) + " " + (n+4));
+        return answers;
     }
 
     static class InputReader {

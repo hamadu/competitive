@@ -11,60 +11,37 @@ public class G {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] a = new int[n];
-        int[] base = new int[n];
+        long[][] a = new long[n][2];
         for (int i = 0; i < n ; i++) {
-            base[i] = a[i] = in.nextInt();
-        }
-        Map<Integer,Integer> c = compress(a);
-        for (int i = 0 ; i < n ; i++) {
-            a[i] = c.get(a[i]) + 1;
+            a[i][0] = in.nextInt() + i;
+            a[i][1] = i;
         }
 
-        BIT bitLarge  = new BIT(n+10);
-        BIT bitSmall  = new BIT(n+10);
-        int[] smaller = new int[n];
-        int [] larger = new int[n];
-        for (int i = 0 ; i < n ; i++) {
-            larger[i] = (int)bitLarge.range(a[i]+1, n+5);
-            bitLarge.add(a[i], 1);
-        }
-        for (int i = n-1 ; i >= 0 ; i--) {
-            smaller[i] = (int)bitSmall.range(1, a[i]-1);
-            bitSmall.add(a[i], 1);
-        }
-
-        int[][] diff = new int[n][2];
-        for (int i = 0 ; i < n ; i++) {
-            diff[i][0] = base[i] + larger[i] - smaller[i];
-            diff[i][1] = smaller[i] - larger[i];
-        }
-
-        Arrays.sort(diff, new Comparator<int[]>() {
+        Arrays.sort(a, new Comparator<long[]>() {
             @Override
-            public int compare(int[] o1, int[] o2) {
-                if (o1[0] == o2[0]) {
-                    return o1[1] - o2[1];
-                }
-                return o1[0] - o2[0];
+            public int compare(long[] o1, long[] o2) {
+                return Long.compare(o1[0], o2[0]);
             }
         });
 
-        boolean isok = true;
-        long d = 0;
-        StringBuilder line = new StringBuilder();
+        StringBuilder b = new StringBuilder();
+        long prev = Long.MIN_VALUE;
+        boolean isOK = true;
         for (int i = 0 ; i < n ; i++) {
-            line.append(' ').append(diff[i][0]);
-            d += diff[i][1];
-            if (d  >= 1) {
-                isok = false;
+            int dec = i;
+            long to = a[i][0] - dec;
+            if (prev <= to) {
+                prev = to;
+                b.append(' ').append(to);
+            } else {
+                isOK = false;
+                break;
             }
         }
-
-        if (isok) {
-            out.println(line.substring(1));
-        } else {
+        if (!isOK) {
             out.println(":(");
+        } else {
+            out.println(b.substring(1));
         }
         out.flush();
     }
