@@ -3,153 +3,63 @@ package codeforces.cr308.div2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.InputMismatchException;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by hama_du on 15/06/20.
  */
 public class D {
+    static int gcd(int a, int b) {
+        return (b == 0) ? a : gcd(b, a%b);
+    }
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[][] pos = new int[210][210];
-        int[][] idx = new int[210][210];
-        for (int i = 0; i < 210 ; i++) {
-            Arrays.fill(idx[i], -1);
-        }
-
-
-        Set<Integer> pt = new HashSet<>();
+        int[][] pt = new int[n][2];
         for (int i = 0; i < n ; i++) {
-            int x = in.nextInt() + 100;
-            int y = in.nextInt() + 100;
-            pos[y][x]++;
-            pt.add((y<<8)+x);
-        }
-
-        int pn = pt.size();
-        int[][] points = new int[pn][2];
-        {
-            int pi = 0;
-            for (int p : pt) {
-                int ti = (p >> 8);
-                int tj = (p & 255);
-                points[pi][0] = ti;
-                points[pi][1] = tj;
-                idx[ti][tj] = pi;
-                pi++;
-            }
+            pt[i][0] = in.nextInt();
+            pt[i][1] = in.nextInt();
         }
 
 
-        UnionFind uf = new UnionFind(n+1);
+        long all = 1L * n * (n - 1) * (n - 2) / 6;
+        long dis = 0;
+        for (int i = 0 ; i < n ; i++) {
+            int[] dx = new int[n-i-1];
+            int[] dy = new int[n-i-1];
 
-        long ans = 0;
-        for (int i = 0 ; i < pos.length ; i++) {
-            for (int j = 0; j < pos[0].length; j++) {
-                if (pos[i][j] == 0) {
-                    continue;
-                }
-                uf.clear();
-                for (int pi = 0; pi < pn; pi++) {
-                    int ti = points[pi][0];
-                    int tj = points[pi][1];
-                    int dy = (ti - i) + 200;
-                    int dx = (tj - j) + 200;
-                    int did = dy * 410 + dx;
-                    uf.cnt[did] = pos[ti][tj];
-                }
-
-                for (int pi = 0; pi < pn; pi++) {
-                    int ti = points[pi][0];
-                    int tj = points[pi][1];
-                    int bdy = (ti - i);
-                    int bdx = (tj - j);
-                    int dy = bdy;
-                    int dx = bdx;
-                    if (dy == 0 && dx == 0) {
-                        continue;
+            Map<Integer,Integer> ctDeg = new HashMap<>();
+            for (int j = i+1 ; j < n ; j++) {
+                int ii = j-i-1;
+                dx[ii] = pt[j][0] - pt[i][0];
+                dy[ii] = pt[j][1] - pt[i][1];
+                if (dx[ii] == 0) {
+                    dy[ii] = 1;
+                } else {
+                    if (dx[ii] < 0) {
+                        dx[ii] *= -1;
+                        dy[ii] *= -1;
                     }
-                    while (Math.abs(dx) <= 210 && Math.abs(dy) <= 210) {
-                        int tdx = dx + bdx;
-                        int tdy = dy + bdy;
-                        int id1 = (dy + 250) * 500 + (dx + 250);
-                        int id2 = (tdy + 250) * 410 + (tdx + 250);
-                        uf.unite(id1, id2);
-                        dy = tdy;
-                        dx = tdx;
-                    }
+                    int g = gcd(Math.abs(dx[ii]), Math.abs(dy[ii]));
+                    dx[ii] /= g;
+                    dy[ii] /= g;
                 }
-
-                for (int pi = 0; pi < pn; pi++) {
-                    int ti = points[pi][0];
-                    int tj = points[pi][1];
-                    int dy = (ti - i);
-                    int dx = (tj - j);
-                    int id1 = (dy + 200) * 410 + (dx + 200);
-                    long pair = 1L * pos[i][j] * pos[ti][tj];
-                    long left = n - pos[i][j] - uf.cnt[uf.find(id1)];
-                    ans += pair * left;
+                int did = dx[ii] * 512 + dy[ii];
+                if (ctDeg.containsKey(did)) {
+                    ctDeg.put(did, ctDeg.get(did)+1);
+                } else {
+                    ctDeg.put(did, 1);
                 }
             }
+            for (int qty : ctDeg.values()) {
+                dis += qty * (qty - 1) / 2;
+            }
         }
-        out.println(ans);
+        out.println(all - dis);
         out.flush();
-    }
-
-    static class UnionFind {
-        int N;
-        int[] parent, rank, cnt;
-        UnionFind(int n) {
-            N = n;
-            parent = new int[n];
-            rank = new int[n];
-            cnt = new int[n];
-            clear();
-        }
-
-        void clear() {
-            for (int i = 0 ; i < N ; i++) {
-                parent[i] = i;
-                rank[i] = 0;
-                cnt[i] = 0;
-            }
-        }
-
-        int find(int x) {
-            if (parent[x] == x) {
-                return x;
-            }
-            parent[x] = find(parent[x]);
-            return parent[x];
-        }
-
-        void unite(int x, int y) {
-            x = find(x);
-            y = find(y);
-            if (x == y) {
-                return;
-            }
-            int tct = cnt[x] + cnt[y];
-            cnt[x] = cnt[y] = tct;
-            if (rank[x] < rank[y]) {
-                parent[x] = y;
-            } else {
-                parent[y] = x;
-                if (rank[x] == rank[y]) {
-                    rank[x]++;
-                }
-            }
-        }
-        boolean issame(int x, int y) {
-            return (find(x) == find(y));
-        }
     }
 
     static class InputReader {
