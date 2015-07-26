@@ -1,103 +1,104 @@
-package aoj.vol26;
+package atcoder.arc042;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
-
+public class D {
+    static void stat() {
+        InputReader in = new InputReader(System.in);
+        Map<Integer,Integer> X = new HashMap<>();
+        Map<Integer,Integer> P = new HashMap<>();
+        Map<Integer,Integer> A = new HashMap<>();
+        Map<Integer,Integer> B = new HashMap<>();
+        int ct = 0;
+        for (int i = 0; i < 10000  ; i++) {
+            int x = in.nextInt();
+            int p = in.nextInt();
+            int a = in.nextInt();
+            int b = in.nextInt();
+//            X.put(x, X.getOrDefault(x, 0)+1);
+//            P.put(p, P.getOrDefault(p, 0) + 1);
+//            A.put(a, A.getOrDefault(a, 0)+1);
+//            B.put(b, B.getOrDefault(b, 0)+1);
+            long r = solve(x, p, a, b);
+            if (r < 0) {
+                System.out.println(i+"/"+r);
+                ct++;
+            }
+        }
+//        debug(X);
+//        debug(P);
+//        debug(A);
+//        debug(B);
+    }
+    
     public static void main(String[] args) {
+//        stat();
+
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
-        for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
-        }
-        for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
-            }
-        }
+        long x = in.nextInt();
+        long p = in.nextInt();
+        long a = in.nextInt();
+        long b = in.nextInt();
 
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
-        }
-        N = s.length;
 
-        out.println(dfs(0, 0, n, 0));
+        out.println(solve(x, p, a, b));
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
+    static long solve(long x, long p, long a, long b) {
+        long min = p-1;
+        long val = 0;
+        Set<Long> doe = new HashSet<>();
+        long limit = System.currentTimeMillis() + 4000;
+        long cur = 0;
+        for (long c = a ; c <= b ; c++) {
+            if (c == a) {
+                val = pow(x, a, p);
+            } else {
+                val *= x;
+                val %= p;
             }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
+            min = Math.min(min, val);
+            if (min <= 1) {
+                break;
+            }
+            if (doe.contains(val)) {
+                break;
+            }
+            doe.add(val);
+
+            cur++;
+            if (cur % 100 == 0) {
+                if (System.currentTimeMillis() > limit) {
+                    return 1;
                 }
             }
         }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
+        return min;
+
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
-
-    static long[][][][] memo;
+    static long pow(long a, long x, long MOD) {
+        long res = 1;
+        while (x > 0) {
+            if (x % 2 != 0) {
+                res = (res * a) % MOD;
+            }
+            a = (a * a) % MOD;
+            x /= 2;
+        }
+        return res;
+    }
 
     static class InputReader {
         private InputStream stream;

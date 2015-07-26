@@ -7,97 +7,93 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
+public class P2608 {
+    private static final int INF = 100000000;
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
+        int m = in.nextInt();
+        int s = in.nextInt()-1;
+        int t = in.nextInt()-1;
+
+        int[][] graph = buildGraph(in, n, m);
+        int[] l1 = bfs(s, graph);
+        int[] l2 = bfs(t, graph);
+        long[] deg1 = new long[n+10];
+        long[] deg2 = new long[n+10];
         for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
-        }
-        for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
+            if (l1[i] < INF) {
+                deg1[l1[i]]++;
+            }
+            if (l2[i] < INF) {
+                deg2[l2[i]]++;
             }
         }
 
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
+        int ord = l1[t];
+        long ans = 0;
+        for (int i = 0; i < deg1.length ; i++) {
+            int want = ord - 2 - i;
+            if (want >= 0 && want < deg2.length) {
+                ans += deg1[i] * deg2[want];
             }
         }
-        N = s.length;
-
-        out.println(dfs(0, 0, n, 0));
+        out.println(ans);
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
+    static int[] _que = new int[1000000];
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
-            }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
+    static int[] bfs(int start, int[][] graph) {
+        int n = graph.length;
+        int[] dp = new int[n];
+        Arrays.fill(dp, INF);
+        int qh = 0;
+        int qt = 0;
+        dp[start] = 0;
+        _que[qh++] = start;
+        _que[qh++] = 0;
+        while (qt < qh) {
+            int now = _que[qt++];
+            int time = _que[qt++];
+            for (int to : graph[now]) {
+                if (dp[to] > time+1) {
+                    dp[to] = time+1;
+                    _que[qh++] = to;
+                    _que[qh++] = time+1;
                 }
             }
         }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
+        return dp;
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
-
-    static long[][][][] memo;
+    static int[][] buildGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][] graph = new int[n][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt()-1;
+            int b = in.nextInt()-1;
+            deg[a]++;
+            deg[b]++;
+            edges[i] = new int[]{a, b};
+        }
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            graph[a][--deg[a]] = b;
+            graph[b][--deg[b]] = a;
+        }
+        return graph;
+    }
 
     static class InputReader {
         private InputStream stream;

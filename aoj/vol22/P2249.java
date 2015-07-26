@@ -1,103 +1,117 @@
-package aoj.vol26;
+package aoj.vol22;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
+public class P2249 {
+    private static final int INF = 500000000;
 
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
-        for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
-        }
-        for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
+        while (true) {
+            int n = in.nextInt();
+            int m = in.nextInt();
+            if (n + m == 0) {
+                break;
             }
+            int[][][] graph = buildWeightedGraph(in, n, m);
+            out.println(solve(graph));
         }
-
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
-        }
-        N = s.length;
-
-        out.println(dfs(0, 0, n, 0));
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
+    private static int solve(int[][][] graph) {
+        int n = graph.length;
+        int[] dp = new int[n];
+        Arrays.fill(dp, INF);
+        dp[0] = 0;
+        Queue<State> q = new PriorityQueue<State>();
+        q.add(new State(0, 0));
+        while (q.size() >= 1) {
+            State st = q.poll();
+            for (int[] ed : graph[st.now]) {
+                int to = ed[0];
+                int time = st.time + ed[1];
+                if (dp[to] > time) {
+                    dp[to] = time;
+                    q.add(new State(to, time));
+                }
             }
         }
-        long ret = 0;
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
-            }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
+        int[] tocost = new int[n];
+        Arrays.fill(tocost, INF);
+        for (int i = 0; i < n ; i++) {
+            for (int[] ed : graph[i]) {
+                if (dp[i] < dp[ed[0]] && dp[i] + ed[1] == dp[ed[0]]) {
+                    tocost[ed[0]] = Math.min(tocost[ed[0]], ed[2]);
                 }
             }
         }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
+        int total = 0;
+        for (int i = 1; i < n; i++) {
+            total += tocost[i];
+        }
+        return total;
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
+    static class State implements Comparable<State> {
+        int now;
+        int time;
 
-    static long[][][][] memo;
+        State(int a, int t) {
+            now = a;
+            time = t;
+        }
+
+        @Override
+        public int compareTo(State o) {
+            return time - o.time;
+        }
+    }
+
+
+
+    static int[][][] buildWeightedGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][][] graph = new int[n][][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt()-1;
+            int b = in.nextInt()-1;
+            int w = in.nextInt();
+            int h = in.nextInt();
+            deg[a]++;
+            deg[b]++;
+            edges[i] = new int[]{a, b, w, h};
+        }
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]][3];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            int w = edges[i][2];
+            int h = edges[i][3];
+            graph[a][--deg[a]][0] = b;
+            graph[b][--deg[b]][0] = a;
+            graph[a][deg[a]][1] = w;
+            graph[b][deg[b]][1] = w;
+            graph[a][deg[a]][2] = h;
+            graph[b][deg[b]][2] = h;
+        }
+        return graph;
+    }
+
+
+
 
     static class InputReader {
         private InputStream stream;

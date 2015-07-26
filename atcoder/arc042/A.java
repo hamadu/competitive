@@ -1,103 +1,43 @@
-package aoj.vol26;
+package atcoder.arc042;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
-
+public class A {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
+        int m = in.nextInt();
+        int[][] threads = new int[n][2];
         for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
+            threads[i][0] = n-i;
+            threads[i][1] = i+1;
         }
+        for (int i = 0; i < m ; i++) {
+            int time = n + i + 1;
+            int no = in.nextInt()-1;
+            threads[no][0] = time;
+        }
+        Arrays.sort(threads, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o2[0] - o1[0];
+            }
+        });
         for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
-            }
+            out.println(threads[i][1]);
         }
-
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
-        }
-        N = s.length;
-
-        out.println(dfs(0, 0, n, 0));
         out.flush();
     }
-
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
-
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
-            }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
-                }
-            }
-        }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
-    }
-
-    static int C;
-    static int N;
-    static char[][] S;
-
-    static long[][][][] memo;
 
     static class InputReader {
         private InputStream stream;

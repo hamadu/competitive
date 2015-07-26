@@ -7,97 +7,139 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/26.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
+public class P2611 {
+    
+    static final long MOD = 1000000007;
 
+    static final int MAX = 10;
+    
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
+        merge = computeMergePtn(MAX);
+
         int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
+        graph = buildDirectedGraph(in, n, n - 1);
+        int[] indeg = new int[n];
         for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
+            for (int to : graph[i]) {
+                indeg[to]++;
+            }
         }
+        int root = -1;
         for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
+            if (indeg[i] == 0) {
+                root = i;
             }
         }
 
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
-        }
-        N = s.length;
 
-        out.println(dfs(0, 0, n, 0));
+        long ans = 0;
+        long[] ret = dfs(root);
+        for (int i = 0; i < ret.length; i++) {
+            ans += ret[i];
+        }
+        ans %= MOD;
+
+        out.println(ans);
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
+    static int[][] graph;
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
-            }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
+    static int[][][] merge;
+
+    private static long[] dfs(int now) {
+        int cn = graph[now].length;
+        long[] ret = new long[MAX];
+        if (cn == 0) {
+            ret[1] = 1;
+            return ret;
+        }
+
+        long[][] dp = new long[cn+1][MAX];
+        dp[0][0] = 1;
+        for (int idx = 0; idx < cn ; idx++) {
+            long[] table = dfs(graph[now][idx]);
+            for (int al = 0; al < MAX ; al++) {
+                if (dp[idx][al] == 0) {
                     continue;
                 }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
+                long base = dp[idx][al];
+                for (int bl = 0 ; bl < MAX ; bl++) {
+                    if (table[bl] == 0) {
+                        continue;
+                    }
+                    for (int to = Math.max(al, bl); to < MAX ; to++) {
+                        if (merge[to][al][bl] == 0) {
+                           continue;
+                        }
+                        long add = (base * merge[to][al][bl]) % MOD;
+                        add *= table[bl];
+                        add %= MOD;
+                        dp[idx+1][to] += add;
+                        dp[idx+1][to] %= MOD;
                     }
                 }
             }
         }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
+        for (int i = 0; i < MAX-1 ; i++) {
+            ret[i+1] = dp[cn][i];
+        }
         return ret;
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
+    static int[][] buildDirectedGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][] graph = new int[n][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt();
+            int b = in.nextInt();
+            deg[a]++;
+            edges[i] = new int[]{a, b};
+        }
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            graph[a][--deg[a]] = b;
+        }
+        return graph;
+    }
 
-    static long[][][][] memo;
+    static int[][][] computeMergePtn(int max) {
+        int[][][] dp = new int[max][max][max];
+        dp[0][0][0] = 1;
+        for (int cnt = 0; cnt < max-1 ; cnt++) {
+            for (int ai = 0; ai < max ; ai++) {
+                for (int bi = 0; bi < max ; bi++) {
+                    if (dp[cnt][ai][bi] == 0) {
+                        continue;
+                    }
+                    int base = dp[cnt][ai][bi];
+                    if (ai+1 < max) {
+                        dp[cnt+1][ai+1][bi] += base;
+                        dp[cnt+1][ai+1][bi] -= (dp[cnt+1][ai+1][bi] >= MOD) ? MOD : 0;
+                    }
+                    if (bi+1 < max) {
+                        dp[cnt+1][ai][bi+1] += base;
+                        dp[cnt+1][ai][bi+1] -= (dp[cnt+1][ai][bi+1] >= MOD) ? MOD : 0;
+                    }
+                    if (ai+1 < max && bi+1 < max) {
+                        dp[cnt+1][ai+1][bi+1] += base;
+                        dp[cnt+1][ai+1][bi+1] -= (dp[cnt+1][ai+1][bi+1] >= MOD) ? MOD : 0;
+                    }
+                }
+            }
+        }
+        return dp;
+    }
 
     static class InputReader {
         private InputStream stream;

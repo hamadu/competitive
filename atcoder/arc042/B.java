@@ -1,103 +1,66 @@
-package aoj.vol26;
+package atcoder.arc042;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
-
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
+        int x = in.nextInt();
+        int y = in.nextInt();
         int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
+        int[][] points = new int[n][2];
         for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
-        }
-        for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
-                }
+            for (int j = 0; j < 2 ; j++) {
+                points[i][j] = in.nextInt();
             }
         }
-
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
+        double min = 100000000;
+        for (int i = 0; i < n ; i++) {
+            int j = (i+1)%n;
+            min = Math.min(min, solve(x, y, points[i][0], points[i][1], points[j][0], points[j][1]));
         }
-        N = s.length;
-
-        out.println(dfs(0, 0, n, 0));
+        out.println(String.format("%.9f", min));
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
+    static double solve(int x, int y, int ax, int ay, int bx, int by) {
+        int dx = bx - ax;
+        int dy = by - ay;
+        int ux = x - ax;
+        int uy = y - ay;
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
-            }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
-                }
-            }
-        }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
+        int cr = cross(dx, dy, ux, uy);
+        double cos = 1.0d * cr / size(dx, dy) / size(ux, uy);
+        double u = size(ux, uy);
+        double a = u * cos;
+        double dist = Math.sqrt(u * u - a * a);
+        return dist;
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
 
-    static long[][][][] memo;
+    static int d2(int dx, int dy) {
+        return dx * dx + dy * dy;
+    }
+
+
+    static double size(int dx, int dy) {
+        return Math.sqrt(d2(dx, dy));
+    }
+
+    static int cross(int dx1, int dy1, int dx2, int dy2) {
+        return dx1 * dx2 + dy1 * dy2;
+    }
+
 
     static class InputReader {
         private InputStream stream;

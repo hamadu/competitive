@@ -1,103 +1,99 @@
-package aoj.vol26;
+package aoj.vol24;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/11.
+ * Created by hama_du on 15/07/25.
  */
-public class P2630 {
-    private static final long MOD = 1000000007;
-
+public class P2446 {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        char[][] s = new char[n][];
-        C = 0;
+        n = in.nextInt();
+        M = in.nextLong();
+        a = new long[n];
         for (int i = 0; i < n ; i++) {
-            s[i] = in.nextToken().toCharArray();
-            C = Math.max(C, s[i].length);
+            a[i] = in.nextLong();
+        }
+        rate = new double[n];
+        for (int i = 0; i < n ; i++) {
+            rate[i] = in.nextInt() / 100.0d;
+        }
+
+        lcm = new long[1<<n];
+        dfsL(0, 0, 0);
+        lcm[0] = 1;
+
+        table = new long[1<<n];
+        for (int j = 1; j < (1<<n) ; j++) {
+            table[j] = M / lcm[j];
         }
         for (int i = 0; i < n ; i++) {
-            s[i] = Arrays.copyOf(s[i], C);
-            for (int j = 0; j < C ; j++) {
-                if (s[i][j] == 0) {
-                    s[i][j] = '`';
+            for (int j = 0; j < 1<<n ; j++) {
+                if ((j & (1<<i)) >= 1) {
+                    table[j] -= table[j ^ (1 << i)];
                 }
             }
         }
 
-        S = s;
-        memo = new long[21][51][51][30];
-        for (int i = 0; i < 21 ; i++) {
-            for (int j = 0; j < 51 ; j++) {
-                for (int k = 0; k < 51 ; k++) {
-                    Arrays.fill(memo[i][j][k], -1);
-                }
-            }
+        for (int i = 0; i < 1<<n ; i++) {
+            table[i] = Math.abs(table[i]);
         }
-        N = s.length;
 
-        out.println(dfs(0, 0, n, 0));
+        out.println(String.format("%.9f", ret(0, 0, 1.0d)));
         out.flush();
     }
 
-    static long dfs(int c, int fr, int to, int last) {
-        if (c == C) {
-            return (to - fr >= 2) ? 0 : 1;
-        }
-        if (fr == to) {
-            return 1;
-        }
-        if (memo[c][fr][to][last] != -1) {
-            return memo[c][fr][to][last];
-        }
-        char min = (char)('`' + last);
-        for (int i = fr; i < to; i++) {
-            if (S[i][c] != '?' && S[i][c] < min) {
-                memo[c][fr][to][last] = 0;
-                return 0;
-            }
-        }
-        long ret = 0;
+    static int n;
+    static long[] a;
+    static double[] rate;
+    static long M;
+    static long[] lcm;
 
-        int[] kind = new int[255];
-        int fu = 0;
-        int only = -1;
-        for (int i = fr ; i < to ; i++) {
-            if ('`' <= S[i][c] && S[i][c] <= 'z') {
-                if (kind[S[i][c]] == 0) {
-                    kind[S[i][c]]++;
-                    fu++;
-                    only = S[i][c] - '`';
-                }
+    static double ret(int idx, int ptn, double r) {
+        if (idx == n) {
+            if (ptn == 0) {
+                return 0.0d;
             }
-            if (fu <= 1) {
-                if (only == 0 && i - fr + 1 >= 2) {
-                    continue;
-                }
-                for (int u = last; u <= 26; u++) {
-                    if ((only == -1 && u != 0) || only == u) {
-                        ret += (dfs(c + 1, fr, i + 1, 0) * dfs(c, i + 1, to, u + 1)) % MOD;
-                    }
-                }
-            }
+            return r * table[ptn];
         }
-        ret %= MOD;
-        memo[c][fr][to][last] = ret;
-        return ret;
+        return ret(idx+1, ptn, r * (1.0d - rate[idx])) + ret(idx+1, ptn|(1<<idx), r * rate[idx]);
     }
 
-    static int C;
-    static int N;
-    static char[][] S;
+    static void dfsL(int idx, int ptn, long l) {
+        if (idx == n) {
+            lcm[ptn] = l;
+            return;
+        }
+        dfsL(idx + 1, ptn, l);
+        long to = INF;
+        if (l == 0) {
+            to = a[idx];
+        } else if (l < INF) {
+            long gcd = gcd(l, a[idx]);
+            to = l / gcd;
+            if (to >= INF / a[idx]) {
+                to = INF;
+            } else {
+                to *= a[idx];
+            }
+        }
+        dfsL(idx + 1, ptn | (1 << idx), to);
+    }
 
-    static long[][][][] memo;
+    static long[] table;
+
+    private static long gcd(long a, long b) {
+        return (b == 0) ? a : gcd(b, a%b);
+    }
+
+    static final long INF = 2000000000000000000L;
 
     static class InputReader {
         private InputStream stream;
