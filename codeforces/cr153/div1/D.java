@@ -1,72 +1,58 @@
-package codeforces.cr313.div1;
+package codeforces.cr153.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/22.
+ * Created by hama_du on 15/08/03.
  */
-public class B {
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        a = in.nextToken().toCharArray();
-        b = in.nextToken().toCharArray();
-        int n = a.length;
-
-        degA = new int[n+1][26];
-        degB = new int[n+1][26];
+        int n = in.nextInt();
+        long[][] a = new long[n][2];
+        long x1 = 0;
+        long x2 = 0;
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 26; j++) {
-                degA[i+1][j] = degA[i][j] + ((a[i] == (char)('a' + j)) ? 1 : 0);
-                degB[i+1][j] = degB[i][j] + ((b[i] == (char)('a' + j)) ? 1 : 0);
+            a[i][0] = in.nextLong();
+            a[i][1] = i;
+            x2 ^= a[i][0];
+        }
+        Arrays.sort(a, new Comparator<long[]>() {
+            @Override
+            public int compare(long[] o1, long[] o2) {
+                return Long.signum(o2[0] - o1[0]);
+            }
+        });
+
+        int[] which = new int[n];
+        Arrays.fill(which, 2);
+        for (int i = 0; i < n ; i++) {
+            int idx = (int)a[i][1];
+            long t1 = x1 ^ a[i][0];
+            long t2 = x2 ^ a[i][0];
+            debug(a[i][0], x1, x2, t1, t2);
+            if (t1 + t2 > x1 + x2 || (t1 + t2 == x1 + x2 && t1 < x1)) {
+                x1 = t1;
+                x2 = t2;
+                which[idx] = 1;
             }
         }
 
-        out.println(eqv(0, n, 0, n) ? "YES" : "NO");
+        debug(x1,x2);
+
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < n ; i++) {
+            line.append(' ').append(which[i]);
+        }
+        out.println(line.substring(1));
         out.flush();
-    }
-
-    static char[] a;
-    static char[] b;
-
-    static int[][] degA;
-    static int[][] degB;
-
-    static boolean eqv(int i, int j, int k, int l) {
-        for (int m = 0; m < 26; m++) {
-            if (degA[j][m] - degA[i][m] != degB[l][m] - degB[k][m]) {
-                return false;
-            }
-        }
-        if (isSame(i, j, k, l)) {
-            return true;
-        }
-        if ((j-i)%2 == 0) {
-            int medIJ = (i+j)/2;
-            int medKL = (k+l)/2;
-            if (eqv(i, medIJ, k, medKL) && eqv(medIJ, j, medKL, l)) {
-                return true;
-            }
-            if (eqv(i, medIJ, medKL, l) && eqv(medIJ, j, k, medKL)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isSame(int i, int j, int k, int l) {
-        int d = j-i;
-        for (int m = 0; m < d ; m++) {
-            if (a[i+m] != b[k+m]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     static class InputReader {

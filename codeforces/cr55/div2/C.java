@@ -1,4 +1,4 @@
-package codeforces.cr313.div1;
+package codeforces.cr55.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,66 +7,62 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/22.
+ * Created by hama_du on 15/08/03.
  */
-public class B {
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
-
-        a = in.nextToken().toCharArray();
-        b = in.nextToken().toCharArray();
-        int n = a.length;
-
-        degA = new int[n+1][26];
-        degB = new int[n+1][26];
-        for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 26; j++) {
-                degA[i+1][j] = degA[i][j] + ((a[i] == (char)('a' + j)) ? 1 : 0);
-                degB[i+1][j] = degB[i][j] + ((b[i] == (char)('a' + j)) ? 1 : 0);
-            }
-        }
-
-        out.println(eqv(0, n, 0, n) ? "YES" : "NO");
+        
+        int k = in.nextInt();
+        char[] c = in.nextToken().toCharArray();
+        
+        out.println(solve(k, c));
         out.flush();
     }
 
-    static char[] a;
-    static char[] b;
+    private static String solve(int k, char[] c) {
+        int n = c.length;
+        int need = (1<<k)-1;
+        int used = 0;
+        for (int i = 0; i < n / 2; i++) {
+            if (c[i] != '?' && c[n-1-i] != '?' && c[i] != c[n-1-i]) {
+                return "IMPOSSIBLE";
+            }
+        }
 
-    static int[][] degA;
-    static int[][] degB;
+        for (int i = 0; i < n; i++) {
+            if (c[i] != '?') {
+                used |= 1<<(c[i]-'a');
+            }
+        }
 
-    static boolean eqv(int i, int j, int k, int l) {
-        for (int m = 0; m < 26; m++) {
-            if (degA[j][m] - degA[i][m] != degB[l][m] - degB[k][m]) {
-                return false;
+        for (int i = 0; i <= (n-1) / 2; i++) {
+            if (c[i] == '?' && c[n-1-i] == '?') {
+                int fill = k - Integer.bitCount(used);
+                for (int j = i; j <= (n-1) / 2; j++) {
+                    if (c[j] == '?' && c[n-1-j] == '?') {
+                        fill--;
+                    }
+                }
+                char us = 'a';
+                if (fill >= 0) {
+                    for (int j = 0; j < k; j++) {
+                        if ((used & (1<<j)) == 0) {
+                            used |= 1<<j;
+                            us = (char)('a' + j);
+                            break;
+                        }
+                    }
+                }
+                c[i] = c[n-1-i] = us;
+            } else if (c[i] == '?') {
+                c[i] = c[n-1-i];
+            } else {
+                c[n-1-i] = c[i];
             }
         }
-        if (isSame(i, j, k, l)) {
-            return true;
-        }
-        if ((j-i)%2 == 0) {
-            int medIJ = (i+j)/2;
-            int medKL = (k+l)/2;
-            if (eqv(i, medIJ, k, medKL) && eqv(medIJ, j, medKL, l)) {
-                return true;
-            }
-            if (eqv(i, medIJ, medKL, l) && eqv(medIJ, j, k, medKL)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isSame(int i, int j, int k, int l) {
-        int d = j-i;
-        for (int m = 0; m < d ; m++) {
-            if (a[i+m] != b[k+m]) {
-                return false;
-            }
-        }
-        return true;
+        return (need == used) ? String.valueOf(c) : "IMPOSSIBLE";
     }
 
     static class InputReader {

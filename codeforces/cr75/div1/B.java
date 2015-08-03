@@ -1,4 +1,4 @@
-package codeforces.cr313.div1;
+package codeforces.cr75.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,66 +7,118 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/07/22.
+ * Created by hama_du on 15/08/03.
  */
 public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        a = in.nextToken().toCharArray();
-        b = in.nextToken().toCharArray();
-        int n = a.length;
-
-        degA = new int[n+1][26];
-        degB = new int[n+1][26];
+        int n = in.nextInt();
+        int[] a = new int[n];
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 26; j++) {
-                degA[i+1][j] = degA[i][j] + ((a[i] == (char)('a' + j)) ? 1 : 0);
-                degB[i+1][j] = degB[i][j] + ((b[i] == (char)('a' + j)) ? 1 : 0);
-            }
+            a[i] = in.nextInt();
         }
 
-        out.println(eqv(0, n, 0, n) ? "YES" : "NO");
+        SegmentTree seg = new SegmentTree(a);
+        int[] ans = new int[n];
+        for (int i = n-1; i >= 0 ; i--) {
+            int q = a[i];
+            int far = seg.findLessOrEqualIndexLeft(n-1, q-1);
+            ans[i] = Math.max(-1, far - i - 1);
+        }
+
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < n ; i++) {
+            line.append(' ').append(ans[i]);
+        }
+        out.println(line.substring(1));
         out.flush();
     }
 
-    static char[] a;
-    static char[] b;
+    public static class SegmentTree {
+        int N;
+        int M;
+        int[] seg;
 
-    static int[][] degA;
-    static int[][] degB;
+        public SegmentTree(int[] data) {
+            N = Integer.highestOneBit(data.length-1)<<2;
+            M = (N >> 1) - 1;
 
-    static boolean eqv(int i, int j, int k, int l) {
-        for (int m = 0; m < 26; m++) {
-            if (degA[j][m] - degA[i][m] != degB[l][m] - degB[k][m]) {
-                return false;
+            seg = new int[N];
+            Arrays.fill(seg, Integer.MAX_VALUE);
+            for (int i = 0 ; i < data.length ; i++) {
+                seg[M+i] = data[i];
+            }
+            for (int i = M-1 ; i >= 0 ; i--) {
+                seg[i] = compute(i);
             }
         }
-        if (isSame(i, j, k, l)) {
-            return true;
-        }
-        if ((j-i)%2 == 0) {
-            int medIJ = (i+j)/2;
-            int medKL = (k+l)/2;
-            if (eqv(i, medIJ, k, medKL) && eqv(medIJ, j, medKL, l)) {
-                return true;
-            }
-            if (eqv(i, medIJ, medKL, l) && eqv(medIJ, j, k, medKL)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    private static boolean isSame(int i, int j, int k, int l) {
-        int d = j-i;
-        for (int m = 0; m < d ; m++) {
-            if (a[i+m] != b[k+m]) {
-                return false;
+        public void update(int idx, int value) {
+            seg[M+idx] = value;
+            int i = M+idx;
+            while (true) {
+                i = (i-1) >> 1;
+                seg[i] = compute(i);
+                if (i == 0) {
+                    break;
+                }
             }
         }
-        return true;
+
+        public int compute(int i) {
+            return Math.min(seg[i*2+1], seg[i*2+2]);
+        }
+
+
+        public int min(int l, int r) {
+            return min(l, r, 0, 0, M+1);
+        }
+
+        public int min(int l, int r, int idx, int fr, int to) {
+            if (to <= l || r <= fr) {
+                return Integer.MAX_VALUE;
+            }
+            if (l <= fr && to <= r) {
+                return seg[idx];
+            }
+
+            int med = (fr+to) / 2;
+            int ret = Integer.MAX_VALUE;
+            ret = Math.min(ret, min(l, r, idx*2+1, fr, med));
+            ret = Math.min(ret, min(l, r, idx*2+2, med, to));
+            return ret;
+        }
+
+        /**
+         * L番目以前、最初にV以下になるインデックスを見つける。O(logn)
+         * 見つからない時は -1
+         *
+         * @param l
+         * @param v
+         * @return
+         */
+        public int findLessOrEqualIndexLeft(int l, int v) {
+            int cur = M + l;
+            while (true) {
+                if (seg[cur] <= v) {
+                    if (cur < M) {
+                        cur = cur*2+2;
+                    } else {
+                        return cur - M;
+                    }
+                } else {
+                    if ((cur & (cur+1)) == 0) {
+                        return -1;
+                    }
+                    cur--;
+                    if ((cur&1)==0) {
+                        cur >>>= 1;
+                    }
+                }
+            }
+        }
     }
 
     static class InputReader {
