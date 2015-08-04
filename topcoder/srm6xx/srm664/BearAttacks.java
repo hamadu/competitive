@@ -85,10 +85,4 @@ public class BearAttacks {
     public static void debug(Object... o) {
         System.err.println(Arrays.deepToString(o));
     }
-
-    public static void main(String[] args) {
-        BearAttacks b = new BearAttacks();
-
-        System.out.println(b.expectedValue(19, 384038999, 938592393, 692854433, 1000000000, 300000000, 600000000));
-    }
 }
