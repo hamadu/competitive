@@ -1,106 +1,93 @@
-package atcoder.arc042;
+package codeforces.cr326.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.Map;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/10/17.
  */
-public class D {
+public class B {
+    private static final long MOD = 1000000007;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        long l = in.nextLong();
+        int k = in.nextInt();
+
+        int[] a = new int[n+1];
+        int[] orig = new int[n];
+
+        a[0] = -1;
+        for (int i = 0; i < n; i++) {
+            a[i+1] = in.nextInt();
         }
+        for (int i = 0; i < n ; i++) {
+            orig[i] = a[i+1];
+        }
+
+        for (int i = 0; i <= n ; i++) {
+            int tm = (int)(Math.random() * i);
+            int tmp = a[i];
+            a[i] = a[tm];
+            a[tm] = tmp;
+        }
+
+        Arrays.sort(a);
+
+        Map<Integer,Integer> vmap = new HashMap<>();
+        for (int i = 0; i <= n; i++) {
+            vmap.put(a[i], i);
+        }
+        int[] itoi = new int[n];
+        for (int i = 0; i < n ; i++) {
+            itoi[i] = vmap.get(orig[i]);
+        }
+
+        long ans = 0;
+        long[][] dp = new long[2][n+1];
+        dp[0][0] = 1;
+        for (int len = 1; len <= k ; len++) {
+            int ti = len % 2;
+            int fi = 1 - ti;
+            Arrays.fill(dp[ti], 0);
+
+            long prev = 0;
+            int fr = 0;
+            for (int j = 1; j <= n; j++) {
+                while (fr <= n && a[fr] <= a[j]) {
+                    prev += dp[fi][fr];
+                    fr++;
+                }
+                dp[ti][j] = prev % MOD;
+            }
+
+            long sum = 0;
+            for (int i = 1 ; i <= n ; i++) {
+                sum += dp[ti][i];
+            }
+            sum %= MOD;
+            long all = l / n;
+            if (len <= all) {
+                ans += (sum * ((all-len+1) % MOD)) % MOD;
+            }
+            if (len <= all+1) {
+                for (int i = 0; i < l % n; i++) {
+                    int v = orig[i];
+                    ans += dp[ti][vmap.get(v)];
+                }
+            }
+            ans %= MOD;
+        }
+        out.println(ans);
         out.flush();
-    }
-
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
     }
 
     static class InputReader {
@@ -168,7 +155,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +175,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

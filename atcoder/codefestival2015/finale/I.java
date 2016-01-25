@@ -1,107 +1,113 @@
-package atcoder.arc042;
+package atcoder.codefestival2015.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/11/14.
  */
-public class D {
+public class I {
+
+    static class Balloon implements Comparable<Balloon> {
+        int idx;
+        int height;
+        int parent;
+        int cost;
+        Balloon next;
+
+        Balloon(int i, int h, int p) {
+            idx = i;
+            height = h;
+            parent = p;
+            cost = 0;
+        }
+
+        @Override
+        public int compareTo(Balloon o) {
+            return o.height - height;
+        }
+    }
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int[] tree = new int[n];
+        int[] parent = new int[n];
+
+        int[] l = new int[n];
+        int[] height = new int[n];
+        for (int i = 0; i < n ; i++) {
+            l[i] = in.nextInt();
+        }
+        height[0] = l[0];
+        parent[0] = -1;
+
+        for (int i = 1; i < n ; i++) {
+            int p = in.nextInt();
+            height[i] = height[p] + l[i];
+            parent[i] = p;
+        }
+
+        int q = in.nextInt();
+        int[][] queries = new int[q][2];
+        for (int i = 0; i < q ; i++) {
+            queries[i][0] = i;
+            queries[i][1] = in.nextInt();
+        }
+
+        Set<Integer> heights = new HashSet<>();
+        for (int i = 0; i < n ; i++) {
+            heights.add(height[i]);
+        }
+
+        Arrays.sort(queries, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o2[1] - o1[1];
+            }
+        });
+        int[] answer = new int[q];
+
+        Balloon[] bl = new Balloon[n];
+        for (int i = 0; i < n ; i++) {
+            bl[i] = new Balloon(i, height[i], parent[i]);
+        }
+        for (int i = 1; i < n ; i++) {
+            bl[i].next = bl[parent[i]];
+        }
+        Queue<Balloon> que = new PriorityQueue<>();
+        for (int i = 0; i < n ; i++) {
+            que.add(bl[i]);
+        }
+
+        int cut = 0;
+        for (int i = 0; i < q ; i++) {
+            int he = queries[i][1];
+            if (!heights.contains(he)) {
+                answer[queries[i][0]] = -1;
+                continue;
+            }
+            while (que.size() >= 1 && que.peek().height > he) {
+                Balloon ba = que.poll();
+                cut++;
+                if (ba.next != null) {
+                    ba.next.cost++;
+                }
+                cut-=ba.cost;
+            }
+            answer[queries[i][0]] = cut;
+        }
+
+        for (int i = 0; i < q ; i++) {
+            out.println(answer[i]);
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
-    }
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +174,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +194,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

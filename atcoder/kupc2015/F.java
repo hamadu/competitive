@@ -1,107 +1,88 @@
-package atcoder.arc042;
+package atcoder.kupc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.InputMismatchException;
+import java.util.Stack;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/10/24.
  */
-public class D {
+public class F {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        char[] s = in.nextToken().toCharArray();
+
+        int n = s.length;
+        parent = new int[n];
+        children = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            Arrays.fill(children[i], -1);
         }
+        Arrays.fill(parent, -1);
+
+        Stack<Integer> stk = new Stack<>();
+        for (int i = 0; i < n ; i++) {
+            if (s[i] == '-' || s[i] == '+' || s[i] == '*') {
+                int r = stk.pop();
+                int l = stk.pop();
+                children[i][0] = l;
+                children[i][1] = r;
+                parent[l] = parent[r] = i;
+                stk.push(i);
+            } else {
+                stk.push(i);
+            }
+        }
+        vs = new V[n];
+        dfs(stk.pop(), 0, 0);
+
+        Arrays.sort(vs);
+        char[] ord = new char[n];
+        for (int i = 0; i < n ; i++) {
+            ord[i] = s[vs[i].idx];
+        }
+        out.println(String.valueOf(ord));
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
+    static int[][] children;
+    static int[] parent;
+    static V[] vs;
+
+    static class V implements Comparable<V> {
+        int idx;
+        int d;
+        long s;
+
+        public V(int i, int di, long si) {
+            idx = i;
+            d = di;
+            s = si;
         }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
+        @Override
+        public int compareTo(V o) {
+            if (d != o.d) {
+                return o.d-d;
             }
+            return Long.compare(o.s, s);
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+    public static void dfs(int now, int depth, long score) {
+        vs[now] = new V(now, depth, score);
+        if (children[now][0] != -1) {
+            dfs(children[now][1], depth+1, score*2+1);
+            dfs(children[now][0], depth+1, score*2);
         }
-        return min;
     }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
-    }
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +149,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +169,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

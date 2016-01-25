@@ -1,4 +1,4 @@
-package atcoder.tenka2015.finale;
+package atcoder.arc045;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,83 +7,81 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Created by hama_du on 15/09/05.
+ * Created by hama_du on 15/10/10.
  */
 public class C {
-    private static final int INF = 1145141919;
-
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
+        int n = in.nextInt();
+        long x = in.nextInt();
 
-        w = in.nextInt();
-        int h = in.nextInt();
-        int[] ord = new int[w];
-        for (int i = 0; i < w ; i++) {
-            ord[i] = i;
-        }
-        for (int i = 0; i < h ; i++) {
-            int d = in.nextInt();
-            int tmp = ord[d];
-            ord[d] = ord[d+1];
-            ord[d+1] = tmp;
-        }
-        int[] want = new int[w];
-        for (int i = 0; i < w; i++) {
-            want[i] = in.nextInt();
-        }
+        graph = buildWeightedGraph(in, n, n-1);
+        value = new long[n];
 
-        int initialID = id(ord);
-        int wantID = id(want);
-
-        Map<Integer,Integer> memo = new HashMap<>();
-        Queue<Integer> q = new ArrayBlockingQueue<>(10000);
-        memo.put(initialID, 0);
-        q.add(initialID);
+        Queue<Integer> q = new ArrayBlockingQueue<>(1000000);
+        q.add(0);
+        q.add(-1);
         q.add(0);
         while (q.size() >= 1) {
-            int[] o = revid(q.poll());
-            int time = q.poll();
-            for (int i = 0; i < w-1 ; i++) {
-                swap(o, i, i+1);
-                int tid = id(o);
-                if (!memo.containsKey(tid)) {
-                    memo.put(tid, time+1);
-                    q.add(tid);
-                    q.add(time+1);
+            int now = q.poll();
+            int par = q.poll();
+            int val = q.poll();
+            value[now] = val;
+            for (int[] e : graph[now]) {
+                if (e[0] == par) {
+                    continue;
                 }
-                swap(o, i, i+1);
+                q.add(e[0]);
+                q.add(now);
+                q.add(val ^ e[1]);
             }
         }
 
-        out.println(memo.get(wantID));
+        long ans = 0;
+        Map<Long,Integer> deg = new HashMap<>();
+        for (int i = n-1 ; i >= 0 ; i--) {
+            long want = value[i] ^ x;
+            if (deg.containsKey(want)) {
+                ans += deg.get(want);
+            }
+            deg.put(value[i], deg.getOrDefault(value[i], 0)+1);
+        }
+        out.println(ans);
         out.flush();
     }
 
-    private static int[] revid(int poll) {
-        int[] x = new int[w];
-        for (int i = 0; i < w ; i++) {
-            x[i] = (poll>>(i*3))&7;
+    static long[] value;
+    static int[][][] graph;
+
+    static int[][][] buildWeightedGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][][] graph = new int[n][][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt()-1;
+            int b = in.nextInt()-1;
+            int w = in.nextInt();
+            deg[a]++;
+            deg[b]++;
+            edges[i] = new int[]{a, b, w};
         }
-        return x;
-    }
-
-    static int w;
-
-    public static int id(int[] ord) {
-        int id = 0;
-        for (int i = 0; i < w ; i++) {
-            id |= ord[i]<<(3*i);
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]][2];
         }
-        return id;
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            int w = edges[i][2];
+            graph[a][--deg[a]][0] = b;
+            graph[b][--deg[b]][0] = a;
+            graph[a][deg[a]][1] = w;
+            graph[b][deg[b]][1] = w;
+        }
+        return graph;
     }
 
-    public static void swap(int[] ord, int i, int j) {
-        int tmp = ord[i];
-        ord[i] = ord[j];
-        ord[j] = tmp;
-    }
 
     static class InputReader {
         private InputStream stream;

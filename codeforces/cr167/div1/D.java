@@ -1,106 +1,100 @@
-package atcoder.arc042;
+package codeforces.cr167.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/09.
  */
 public class D {
+    private static final long MOD = 1000000007;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int m = in.nextInt();
+
+        long[][][][] dp = new long[4][n][m+1][m+1];
+        for (int fr = 0; fr < m; fr++) {
+            for (int to = fr; to < m; to++) {
+                dp[0][0][fr][to] = 1;
+            }
         }
+        for (int r = 1 ; r < n ; r++) {
+            long[][][] imos = new long[4][m+1][m+1];
+            for (int flg = 0; flg <= 3; flg++) {
+                for (int fr = 0; fr < m; fr++) {
+                    for (int to = 0; to < m; to++) {
+                        imos[flg][fr+1][to+1] = imos[flg][fr+1][to] + imos[flg][fr][to+1] - imos[flg][fr][to] + dp[flg][r-1][fr][to];
+                        imos[flg][fr+1][to+1] += MOD * 10;
+                        imos[flg][fr+1][to+1] %= MOD;
+                    }
+                }
+            }
+
+            for (int tfr = 0; tfr < m; tfr++) {
+                for (int tto = tfr ; tto < m ; tto++) {
+                    for (int flg = 0; flg <= 3; flg++) {
+                        long val = 0;
+                        if (flg == 0) {
+                            // [0] fr >= tfr, to <= tto
+                            val += range(imos[0], tfr, m-1, 0, tto);
+                        } else if (flg == 1) {
+                            // [0] fr < tfr, to <= tto
+                            val += range(imos[0], 0, tfr-1, tfr, tto);
+
+                            // [1] fr <= tfr, to <= tto
+                            val += range(imos[1], 0, tfr, tfr, tto);
+                        } else if (flg == 2) {
+                            // [0] fr >= tfr, to > tto
+                            val += range(imos[0], tfr, tto, tto+1, m-1);
+
+                            // [2] fr >= tfr, to >= tto
+                            val += range(imos[2], tfr, tto, tto, m-1);
+                        } else {
+                            // [0] fr < tfr, to > tto
+                            val += range(imos[0], 0, tfr-1, tto+1, m-1);
+
+                            // [1] fr <= tfr, to > tto
+                            val += range(imos[1], 0, tfr, tto+1, m-1);
+
+                            // [2] fr < tfr, to >= tto
+                            val += range(imos[2], 0, tfr-1, tto, m-1);
+
+                            // [3] fr <= tfr, to >= tto
+                            val += range(imos[3], 0, tfr, tto, m-1);
+                        }
+                        val %= MOD;
+                        dp[flg][r][tfr][tto] = val;
+                    }
+                }
+            }
+        }
+
+        long sum = 0;
+        for (int r = 0 ; r < n ; r++) {
+            for (int fr = 0; fr < m; fr++) {
+                for (int to = fr ; to < m; to++) {
+                    for (int flg = 0 ; flg <= 3; flg++) {
+                        sum += (dp[flg][r][fr][to]) * (n-r);
+                    }
+                }
+            }
+            sum %= MOD;
+        }
+
+        out.println(sum);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+    // compute range sum(both inclusive)
+    static long range(long[][] imos, int frX, int toX, int frY, int toY) {
+        return (imos[toX+1][toY+1] - imos[toX+1][frY] - imos[frX][toY+1] + imos[frX][frY] + MOD * 10);
     }
 
     static class InputReader {
@@ -168,7 +162,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +182,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

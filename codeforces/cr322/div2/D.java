@@ -1,107 +1,126 @@
-package atcoder.arc042;
+package codeforces.cr322.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/29.
  */
 public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
+        int[][] ref = new int[3][2];
+        for (int i = 0; i < 3 ; i++) {
+            for (int j = 0; j < 2 ; j++) {
+                ref[i][j] = in.nextInt();
+            }
+        }
+
+        if (!isOK(ref)) {
+            out.println(-1);
         } else {
-            out.println(solve2(x, p, a, b));
+            out.println(map.length);
+            for (int i = 0; i < map.length ; i++) {
+                for (int j = 0; j < map.length ; j++) {
+                    out.print(map[i][j]);
+                }
+                out.println();
+            }
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+    private static boolean isOK(int[][] ref) {
+        int total = 0;
+        for (int i = 0; i < 3 ; i++) {
+            total += ref[i][0] * ref[i][1];
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
+        int size = (int)Math.sqrt(total);
+        if (size * size != total) {
+            return false;
         }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
+        map = new char[size][size];
+
+        int[] ord = new int[]{0, 1, 2};
+        do {
+            for (int f = 0; f <= 7; f++) {
+                int[][] query = new int[3][2];
+                for (int i = 0; i < 3 ; i++) {
+                    int oi = ord[i];
+                    query[i][0] = ((f & (1<<i)) >= 1) ? ref[oi][1] : ref[oi][0];
+                    query[i][1] = ((f & (1<<i)) >= 1) ? ref[oi][0] : ref[oi][1];
+                }
+                if (doit(ord, query)) {
+                    return true;
                 }
             }
-        }
+        } while (next_permutation(ord));
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
+        return false;
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+    private static boolean doit(int[] ord, int[][] query) {
+        int n = map.length;
+        if (query[0][0] != n) {
+            return false;
         }
-        return min;
+
+        if (query[1][0] == n && query[2][0] == n) {
+            int row = query[0][1] + query[1][1] + query[2][1];
+            if (row != n) {
+                return false;
+            }
+            // build
+            fill((char)(ord[0]+'A'), 0, 0, query[0][1], n);
+            fill((char)(ord[1]+'A'), query[0][1], 0, query[1][1], n);
+            fill((char)(ord[2]+'A'), query[0][1] + query[1][1], 0, query[2][1], n);
+            return true;
+        } else if (query[1][0] + query[2][0] == n && query[1][1] == query[2][1]) {
+            if (query[0][1] + query[1][1] != n) {
+                return false;
+            }
+            // build
+            fill((char)(ord[0]+'A'), 0, 0, query[0][1], n);
+            fill((char)(ord[1]+'A'), query[0][1], 0, query[1][1], query[1][0]);
+            fill((char)(ord[2]+'A'), query[0][1], query[1][0], query[2][1], query[2][0]);
+            return true;
+        }
+        return false;
     }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
+    public static void fill(char ch, int y0, int x0, int h, int w) {
+        for (int i = y0 ; i < y0+h; i++) {
+            for (int j = x0; j < x0+w; j++) {
+                map[i][j] = ch;
             }
-            a = (a * a) % MOD;
-            x /= 2;
         }
-        return res;
     }
+
+    public static boolean next_permutation(int[] num) {
+        int len = num.length;
+        int x = len - 2;
+        while (x >= 0 && num[x] >= num[x+1]) {
+            x--;
+        }
+        if (x == -1) return false;
+
+        int y = len - 1;
+        while (y > x && num[y] <= num[x]) {
+            y--;
+        }
+        int tmp = num[x];
+        num[x] = num[y];
+        num[y] = tmp;
+        java.util.Arrays.sort(num, x+1, len);
+        return true;
+    }
+
+    static char[][] map;
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +187,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +207,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

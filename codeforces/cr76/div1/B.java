@@ -1,106 +1,86 @@
-package atcoder.arc042;
+package codeforces.cr76.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.InputMismatchException;
+import java.util.List;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/08.
  */
-public class D {
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
+        int n = in.nextInt();
+        int w = in.nextInt();
+        int m = in.nextInt();
+        int total = n * w * m;
+        int perCup = total / m;
+        int perBottle = total / n;
+        List<int[]>[] bottleConf = doit(perCup, perBottle, n, m);
+        if (bottleConf == null) {
+            out.println("NO");
         } else {
-            out.println(solve2(x, p, a, b));
+            List<int[]>[] cupConf = new List[m];
+            for (int i = 0; i < m ; i++) {
+                cupConf[i] = new ArrayList<>();
+            }
+            for (int i = 0; i < n ; i++) {
+                for (int[] conf : bottleConf[i]) {
+                    cupConf[conf[0]].add(new int[]{i+1, conf[1]});
+                }
+            }
+
+            out.println("YES");
+            for (int i = 0; i < m ; i++) {
+                StringBuilder line = new StringBuilder();
+                for (int[] conf : cupConf[i]) {
+                    line.append(' ').append(conf[0]).append(' ').append(String.format("%.8f", conf[1] * 1.0d / m));
+                }
+                out.println(line.substring(1));
+            }
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+    private static List<int[]>[] doit(int perCup, int perBottle, int n, int m) {
+        if (perCup * 2 < perBottle) {
+            return null;
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
+        List<int[]>[] conf = new List[n];
+        for (int i = 0; i < n ; i++) {
+            conf[i] = new ArrayList<>();
         }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
+        int[] total = new int[m];
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
+        int head = 0;
+        for (int i = 0; i < n ; i++) {
+            if (total[head] + perBottle < perCup) {
+                conf[i].add(new int[]{head, perBottle});
+                total[head] += perBottle;
             } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
+                conf[i].add(new int[]{head, perCup - total[head]});
+                int left = perBottle - (perCup - total[head]);
+                total[head] = perCup;
+                if (left > perCup) {
+                    return null;
+                }
+                head++;
+                if (head < m && left >= 1) {
+                    conf[i].add(new int[]{head, left});
+                    total[head] += left;
+                    if (total[head] == perCup) {
+                        head++;
+                    }
+                }
             }
         }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+        return conf;
     }
 
     static class InputReader {
@@ -168,7 +148,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +168,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

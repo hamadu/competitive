@@ -1,106 +1,110 @@
-package atcoder.arc042;
+package codeforces.cr56.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/07.
  */
-public class D {
+public class B {
+
+    static int[] dx = {-1, 1, 0, 0, 0, 0};
+    static int[] dy = {0, 0, -1, 1, 0, 0};
+    static int[] dz = {0, 0, 0, 0, -1, 1};
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int k = in.nextInt();
+        int n = in.nextInt();
+        int m = in.nextInt();
+        char[][][] map = new char[k][n][m];
+        for (int i = 0; i < k ; i++) {
+            for (int j = 0; j < n ; j++) {
+                map[i][j] = in.nextToken().toCharArray();
+            }
         }
+        int sy = in.nextInt()-1;
+        int sx = in.nextInt()-1;
+
+        UnionFind uf = new UnionFind(n*m*k);
+        for (int i = 0; i < k ; i++) {
+            for (int j = 0; j < n ; j++) {
+                for (int l = 0; l < m ; l++) {
+                    if (map[i][j][l] == '#') {
+                        continue;
+                    }
+                    for (int d = 0; d < 6 ; d++) {
+                        int ti = i+dx[d];
+                        int tj = j+dy[d];
+                        int tl = l+dz[d];
+                        if (ti < 0 || tj < 0 || tl < 0 || ti >= k || tj >= n || tl >= m || map[ti][tj][tl] == '#') {
+                            continue;
+                        }
+                        int id1 = i*(n*m)+j*m+l;
+                        int id2 = ti*(n*m)+tj*m+tl;
+                        uf.unite(id1, id2);
+                    }
+                }
+            }
+        }
+
+        int count = 0;
+        int wantID = 0*(n*m)+sy*m+sx;
+        for (int i = 0; i < k ; i++) {
+            for (int j = 0; j < n; j++) {
+                for (int l = 0; l < m; l++) {
+                    if (uf.issame(wantID, i*n*m+j*m+l)) {
+                        count++;
+                    }
+                }
+            }
+        }
+        out.println(count);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
+    static class UnionFind {
+        int[] parent, rank;
+        UnionFind(int n) {
+            parent = new int[n];
+            rank = new int[n];
+            for (int i = 0 ; i < n ; i++) {
+                parent[i] = i;
+                rank[i] = 0;
             }
         }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
+        int find(int x) {
+            if (parent[x] == x) {
+                return x;
             }
+            parent[x] = find(parent[x]);
+            return parent[x];
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
+        void unite(int x, int y) {
+            x = find(x);
+            y = find(y);
+            if (x == y) {
+                return;
+            }
+            if (rank[x] < rank[y]) {
+                parent[x] = y;
             } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
+                parent[y] = x;
+                if (rank[x] == rank[y]) {
+                    rank[x]++;
+                }
             }
         }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
+        boolean issame(int x, int y) {
+            return (find(x) == find(y));
         }
-        return res;
     }
 
     static class InputReader {
@@ -168,7 +172,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +192,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

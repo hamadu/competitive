@@ -1,4 +1,4 @@
-package atcoder.arc042;
+package codeforces.cr268.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,100 +7,107 @@ import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/10.
  */
-public class D {
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
-        }
+        long a = in.nextLong();
+
+        char[] c = find(a);
+        long L = Long.valueOf(String.valueOf(c));
+        long diff = compute(L).longValue() - a;
+        long[] p = findPair(L, diff);
+
+        out.println(p[0] + " " + p[1]);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
+    static long[] findPair(long L, long diff) {
+        long from = 1;
+        long to = L;
+        while (diff != 0) {
+            long v = doit(from);
+            if (from == to || v > diff) {
+                to++;
+                diff += doit(to);
             } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
+                from++;
+                diff -= v;
             }
         }
-        return min;
+        return new long[]{from, to};
     }
 
+    static char[] find(long L) {
+        long[] x = new long[32];
+        for (int i = 0; i < 32 ; i++) {
+            for (int d = 0; d <= 9; d++) {
+                x[i] = d;
 
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
+                long[] y = x.clone();
+                for (int j = i+1 ; j < x.length ; j++) {
+                    y[j] = 9;
+                }
+                if (compute(y).compareTo(BigInteger.valueOf(L)) >= 0) {
+                    break;
+                }
             }
-            a = (a * a) % MOD;
-            x /= 2;
+
         }
-        return res;
+        char[] ret = new char[32];
+        for (int i = 0; i < 32 ; i++) {
+            ret[i] = (char)('0' + x[i]);
+        }
+        return ret;
+    }
+
+    private static BigInteger compute(long x) {
+        char[] c = String.valueOf(x).toCharArray();
+        long[] y = new long[c.length];
+        for (int i = 0; i < c.length ; i++) {
+            y[i] = c[i]-'0';
+        }
+        return compute(y);
+    }
+
+    private static BigInteger compute(long[] x) {
+        BigInteger total = BigInteger.ZERO;
+        BigInteger head = BigInteger.ZERO;
+        boolean first = false;
+        for (int i = 0; i < x.length ; i++) {
+            BigInteger fullTail = BigInteger.ONE;
+            BigInteger subTail = BigInteger.ZERO;
+            for (int j = i+1 ; j < x.length; j++) {
+                subTail = subTail.multiply(BigInteger.TEN);
+                subTail = subTail.add(BigInteger.valueOf(x[j]));
+                fullTail = fullTail.multiply(BigInteger.TEN);
+            }
+            if (first || x[i] >= 1) {
+                for (int d = 1; d <= 9; d++) {
+                    BigInteger fullNum = (d >= x[i]) ? head.add(BigInteger.ZERO) : head.add(BigInteger.ONE);
+                    total = total.add(fullNum.multiply(fullTail).multiply(BigInteger.valueOf(d)));
+                    if (d == x[i]) {
+                        total = total.add(subTail.add(BigInteger.ONE).multiply(BigInteger.valueOf(d)));
+                    }
+                }
+                first = true;
+            }
+            head = head.multiply(BigInteger.TEN);
+            head = head.add(BigInteger.valueOf(x[i]));
+        }
+        return total;
+    }
+
+    static long doit(long a) {
+        char[] c = String.valueOf(a).toCharArray();
+        long sum = 0;
+        for (int i = 0; i < c.length ; i++) {
+            sum += c[i]-'0';
+        }
+        return sum;
     }
 
     static class InputReader {
@@ -168,7 +175,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +195,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

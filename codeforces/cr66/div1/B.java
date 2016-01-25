@@ -1,106 +1,105 @@
-package atcoder.arc042;
+package codeforces.cr66.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/07.
  */
-public class D {
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        List<Racer> racers = new ArrayList<>();
+        Map<String,Racer> nameMap = new HashMap<>();
+        for (int i = 0; i < n ; i++) {
+            String x = in.nextToken();
+            int p = in.nextInt();
+            Racer r = new Racer(x, p);
+            racers.add(r);
+            nameMap.put(x, r);
         }
+        int m = in.nextInt();
+        int[] ord = new int[n];
+        for (int i = 0; i < m ; i++) {
+            ord[i] = in.nextInt();
+        }
+        Arrays.sort(ord);
+
+        Racer my = nameMap.get(in.nextToken());
+        racers.remove(my);
+
+        int low = doitLow(my, racers, ord);
+        int high = doitHigh(my, racers, ord);
+        out.println(String.format("%d %d", high, low));
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
+    private static int doitHigh(Racer my, List<Racer> racers, int[] ord) {
+        int n = ord.length;
+        int myScore = my.point + ord[n-1];
+        Collections.sort(racers);
+        Collections.reverse(racers);
+        int rank = 1;
+        int oi = 0;
+        int ot = n-2;
+        for (Racer r : racers) {
+            if (r.point > myScore || (r.point == myScore && r.name.compareTo(my.name) < 0)) {
+                // nothing to do.
+                rank++;
+            } else if (oi <= n-2) {
+                if (r.point+ord[oi] < myScore || r.point+ord[oi] == myScore && my.name.compareTo(r.name) < 0) {
+                    // cannot over my score
+                    oi++;
+                } else {
+                    rank++;
                 }
             }
         }
+        return rank;
+    }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
+    private static int doitLow(Racer my, List<Racer> racers, int[] ord) {
+        int myScore = my.point + ord[0];
+        Collections.sort(racers);
+        int rank = 1;
+        int oi = ord.length-1;
+        for (Racer r : racers) {
+            if (r.point > myScore || (r.point == myScore && r.name.compareTo(my.name) < 0)) {
+                // nothing to do
+                rank++;
+            } else if (oi >= 1) {
+                if (r.point+ord[oi] < myScore || r.point+ord[oi] == myScore && my.name.compareTo(r.name) < 0) {
+                    // cannot over my score
+                } else {
+                    oi--;
+                    rank++;
                 }
             }
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
+        return rank;
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+    static class Racer implements Comparable<Racer> {
+        String name;
+        int point;
+
+        Racer(String x, int p) {
+            name = x;
+            point = p;
         }
-        return min;
-    }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
+        @Override
+        public int compareTo(Racer o) {
+            if (point != o.point) {
+                return point - o.point;
             }
-            a = (a * a) % MOD;
-            x /= 2;
+            return o.name.compareTo(name);
         }
-        return res;
     }
 
     static class InputReader {
@@ -168,7 +167,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +187,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

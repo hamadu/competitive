@@ -1,53 +1,90 @@
-package atcoder.tenka2015.finale;
+package atcoder.ttpc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/09/05.
+ * Created by hama_du on 15/09/20.
  */
-public class D {
+public class E {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int l = in.nextInt();
-        int s = in.nextInt();
-        if (l > 10000) {
-            throw new RuntimeException();
+        int n = in.nextInt();
+        int k = in.nextInt();
+        boolean[][] isRed = new boolean[n][n];
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < n ; j++) {
+                isRed[i][j] = (i+j)%2 == 0;
+            }
         }
-        int add = solve(l, s);
-        out.println(add);
-        out.flush();
-    }
 
-    static int solve(int L, int s) {
-        int s2 = s*s;
-        int add = 0;
-        for (int a = 1 ; a <= L; a++) {
-            int a2 = a*a;
-            for (int b = a ; b <= L ; b++) {
-                int c2 = a2+b*b+s2;
-                int c = (int)(Math.pow(c2, 0.5) + 1e-6);
-                if (a+b+c > L) {
-                    break;
+        boolean[] importantX = new boolean[n];
+        boolean[] importantY = new boolean[n];
+        importantX[0] = importantX[n-1] = true;
+        importantY[0] = importantY[n-1] = true;
+
+        int[][] rep = new int[k][2];
+        for (int i = 0; i < k ; i++) {
+            for (int j = 0; j < 2 ; j++) {
+                rep[i][j] = in.nextInt()-1;
+            }
+            isRed[rep[i][0]][rep[i][1]] = !isRed[rep[i][0]][rep[i][1]];
+            for (int d = -3 ; d <= 3; d++) {
+                int ti = rep[i][0]+d;
+                if (ti >= 0 && ti < n) {
+                    importantY[ti] = true;
                 }
-                if (c*c != c2 || b > c || a+b <= c) {
-                    continue;
-                }
-                if (gcd(a, gcd(b, c)) == 1) {
-                    add++;
+                int tj = rep[i][1]+d;
+                if (tj >= 0 && tj < n) {
+                    importantX[tj] = true;
                 }
             }
         }
-        return add;
-    }
 
-    static int gcd(int a, int b) {
-        return b == 0 ? a : gcd(b, a%b);
+        int[] xs = new int[n];
+        int xn = 0;
+        int[] ys = new int[n];
+        int yn = 0;
+        for (int i = 0; i < n ; i++) {
+            if (importantX[i]) {
+                xs[xn++] = i;
+            }
+            if (importantY[i]) {
+                ys[yn++] = i;
+            }
+        }
+
+        int[][] imos = new int[n+1][n+1];
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < n ; j++) {
+                imos[i+1][j+1] = imos[i+1][j] + imos[i][j+1] - imos[i][j] + (isRed[i][j] ? 1 : 0);
+            }
+        }
+        int max = 1;
+        for (int y1 = 0; y1 < yn ; y1++) {
+            for (int y2 = y1 ; y2 < yn; y2++) {
+                for (int x1 = 0; x1 < xn ; x1++) {
+                    for (int x2 = x1; x2 < xn ; x2++) {
+                        int fy = ys[y1];
+                        int ty = ys[y2];
+                        int fx = xs[x1];
+                        int tx = xs[x2];
+                        int range = (ty-fy+1) * (tx-fx+1);
+                        int red = imos[ty+1][tx+1]-imos[ty+1][fx]-imos[fy][tx+1]+imos[fy][fx];
+                        int blue = range-red;
+                        max = Math.max(max, Math.abs(red-blue));
+                    }
+                }
+            }
+        }
+
+        out.println(max);
+        out.flush();
     }
 
     static class InputReader {

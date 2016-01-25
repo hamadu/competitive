@@ -1,107 +1,78 @@
-package atcoder.arc042;
+package atcoder.kupc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/10/24.
  */
-public class D {
+public class E {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        while (--n >= 0) {
+            int h = in.nextInt();
+            int w = in.nextInt();
+            out.println(solve(h, w));
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
+    private static double solve(double H, double W, double x) {
+        double y = Math.sqrt(4*H*H*W*W+4*H*H*x*x-4*H*W*W*x-4*H*x*x*x+W*W*W*W-2*W*W*x*x+x*x*x*x) / (2 * W);
+        double z = (2*H*x+W*W-x*x) / 2*W;
+        if (y > W || z > W) {
             return 0;
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
+        double a = x*x+y*y;
+        double b = (H-x)*(H-x)+z*z;
+        double c = H*H+(W-z)*(W-z);
+        return Math.min(a, Math.min(b, c));
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+    private static double solve(double H, double W) {
+        if (W < H) {
+            return solve(W, H);
         }
-        return min;
+        return Math.max(try0(H, W), try1(H, W));
+    }
+
+    private static double try0(double H, double W) {
+        double min = 0;
+        double max = H;
+        double best = Math.min(W*W, H*H+W*W/4);
+        best = Math.max(best, Math.min(H*H, H*H/4+W*W));
+
+//        for (int cur = 0 ; cur < 50 ; cur++) {
+//            double med1 = (min * 2 + max) / 3;
+//            double med2 = (min + max * 2) / 3;
+//            double b1 = solve(H, W, med1);
+//            double b2 = solve(H, W, med2);
+//            if (b1 < b2) {
+//                min = med1;
+//            } else {
+//                max = med2;
+//            }
+//            best = Math.max(best, Math.max(b1, b2));
+//        }
+        return Math.sqrt(best);
+    }
+
+    private static double try1(double H, double W) {
+        double x = Math.sqrt(3)*H-W;
+        double y = Math.sqrt(3)*W-H;
+        if (x < 0 || y < 0 || x > W || y > H) {
+            return 0;
+        }
+        return Math.sqrt(x*x+y*y);
     }
 
 
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
-    }
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +139,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +159,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

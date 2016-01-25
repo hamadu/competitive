@@ -1,106 +1,94 @@
-package atcoder.arc042;
+package atcoder.dwango2016.qual;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 2016/01/23.
  */
-public class D {
+public class E {
+    static final long INF = (long)1e18;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int l = in.nextInt();
+
+        Set<Integer> timeset = new HashSet<>();
+        int[][] fire = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            fire[i][0] = in.nextInt();
+            fire[i][1] = in.nextInt();
+            timeset.add(fire[i][0]);
         }
+        List<Integer> times = new ArrayList<>();
+        for (int t : timeset) {
+            times.add(t);
+        }
+        Collections.sort(times);
+        Map<Integer,Integer> timeMap = new HashMap<>();
+        for (int i = 0 ; i < times.size() ; i++) {
+            timeMap.put(times.get(i), i);
+        }
+        int tn = timeMap.size();
+
+        List<Integer>[] timeFires = new List[tn];
+        for (int i = 0 ; i < tn ; i++) {
+            timeFires[i] = new ArrayList<>();
+        }
+        for (int i = 0 ; i < n ; i++) {
+            int t = timeMap.get(fire[i][0]);
+            timeFires[t].add(fire[i][1]);
+        }
+        long[][] timeFireImos = new long[tn][];
+        for (int i = 0 ; i < tn ; i++) {
+            int firenum = timeFires[i].size();
+            timeFireImos[i] = new long[firenum+1];
+            for (int f = 0 ; f < firenum ; f++) {
+                timeFireImos[i][f+1] = timeFireImos[i][f] + timeFires[i].get(f);
+            }
+        }
+
+        long[][] dp = new long[tn+1][l+1];
+        for (int i = 0; i <= tn; i++) {
+            Arrays.fill(dp[i], INF);
+        }
+        dp[0][0] = 0;
+
+        long[] prevTable = new long[l+2];
+        for (int i = 1 ; i <= tn ; i++) {
+            Arrays.fill(prevTable, INF);
+            prevTable[0] = dp[i-1][0];
+            for (int j = 1 ; j <= l ; j++) {
+                prevTable[j] = Math.min(prevTable[j-1], dp[i-1][j]);
+            }
+            for (int j = 0; j <= l ; j++) {
+                dp[i][j] = prevTable[j] + computeThat(j, timeFires[i-1], timeFireImos[i-1]); // fire?
+            }
+        }
+
+        long best = INF;
+        for (int i = 0; i <= l ; i++) {
+            best = Math.min(best, dp[tn][i]);
+        }
+        out.println(best);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+    private static long computeThat(long pos, List<Integer> timeFire, long[] timeFireImos) {
+        int idx = Collections.binarySearch(timeFire, (int)pos);
+        if (idx < 0) {
+            idx = -idx-1;
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+        long left = timeFireImos[idx];
+        long right = timeFireImos[timeFireImos.length-1] - left;
+        long ln = idx;
+        long rn = timeFire.size()-ln;
+        return (pos * ln - left) + (right - pos * rn);
     }
 
     static class InputReader {
@@ -168,7 +156,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +176,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

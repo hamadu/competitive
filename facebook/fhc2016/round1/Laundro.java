@@ -1,107 +1,109 @@
-package atcoder.arc042;
+package facebook.fhc2016.round1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 2016/01/10.
  */
-public class D {
+public class Laundro {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int T = in.nextInt();
+        for (int c = 1 ; c <= T ; c++) {
+            int l = in.nextInt();
+            int n = in.nextInt();
+            int m = in.nextInt();
+            long D = in.nextInt();
+            long[] wash = new long[n];
+            for (int i = 0; i < n ; i++) {
+                wash[i] = in.nextLong();
+            }
+            out.println(String.format("Case #%d: %d", c, solve(l, n, m, wash, D)));
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
+    private static long solve(int l, int n, long m, long[] wash, long dry) {
+        long min = -1;
+        long max = (long)1e18;
+        while (max - min > 1) {
+            long med = (max + min) / 2;
+            long sumL = 0;
+            for (int i = 0 ; i < n ; i++) {
+                sumL += med / wash[i];
+                if (sumL >= l) {
+                    break;
                 }
             }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
+            if (sumL >= l) {
+                max = med;
             } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
+                min = med;
             }
         }
-        return min;
-    }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
+        // washing will finish at time max.
+        List<Long> washFinishes = new ArrayList<>();
+        for (int i = 0 ; i < n ; i++) {
+            long num = max / wash[i];
+            for (long t = 1 ; t <= num ; t++) {
+                washFinishes.add(wash[i] * t);
             }
-            a = (a * a) % MOD;
-            x /= 2;
         }
-        return res;
+        Collections.sort(washFinishes);
+
+        Queue<Event> lq = new ArrayBlockingQueue<>(l+100);
+        Queue<Event> q = new PriorityQueue<>();
+        for (int i = 0 ; i < l ; i++) {
+            q.add(new Event(washFinishes.get(i), 1));
+        }
+        long time = 0;
+        while (q.size() >= 1) {
+            Event e = q.poll();
+            if (e.kind == 0) {
+                time = Math.max(time, e.time);
+                m++;
+                while (lq.size() >= 1 && m >= 1) {
+                    lq.poll();
+                    m--;
+                    q.add(new Event(e.time + dry, 0));
+                }
+            } else {
+                if (m >= 1) {
+                    m--;
+                    q.add(new Event(e.time + dry, 0));
+                } else {
+                    lq.add(e);
+                }
+            }
+        }
+        return time;
     }
+
+    static class Event implements Comparable<Event> {
+        long time;
+        long kind;
+
+        public Event(long t, long k) {
+            time = t;
+            kind = k;
+        }
+
+        @Override
+        public int compareTo(Event o) {
+            if (time != o.time) {
+                return Long.compare(time, o.time);
+            }
+            return Long.compare(kind, o.kind);
+        }
+    }
+
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +170,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +190,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

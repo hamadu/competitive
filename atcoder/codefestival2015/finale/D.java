@@ -1,106 +1,107 @@
-package atcoder.arc042;
+package atcoder.codefestival2015.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/11/14.
  */
 public class D {
+
+    static int MAXL = 100100;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+
+        int[] imos = new int[MAXL];
+        int[][] ranges = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            int s = in.nextInt();
+            int t = in.nextInt();
+            imos[s]++;
+            imos[t]--;
+
+            ranges[i][0] = s;
+            ranges[i][1] = t;
         }
+        for (int i = 0; i < MAXL-1 ; i++) {
+            imos[i+1] += imos[i];
+        }
+        SegmentTree tree = new SegmentTree(imos);
+
+        int min = Integer.MAX_VALUE;
+        for (int i = 0; i < n ; i++) {
+            int left = tree.max(0, ranges[i][0]);
+            int right = tree.max(ranges[i][1], imos.length-1);
+            int center = tree.max(ranges[i][0], ranges[i][1]);
+            min = Math.min(min, Math.max(Math.max(left, right), center-1));
+        }
+        out.println(min);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+
+
+    public static class SegmentTree {
+        int N;
+        int M;
+        int[] seg;
+
+        public SegmentTree(int[] data) {
+            N = Integer.highestOneBit(data.length-1)<<2;
+            M = (N >> 1) - 1;
+
+            seg = new int[N];
+            Arrays.fill(seg, Integer.MAX_VALUE);
+            for (int i = 0 ; i < data.length ; i++) {
+                seg[M+i] = data[i];
+            }
+            for (int i = M-1 ; i >= 0 ; i--) {
+                seg[i] = compute(i);
+            }
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
+
+        public void update(int idx, int value) {
+            seg[M+idx] = value;
+            int i = M+idx;
+            while (true) {
+                i = (i-1) >> 1;
+                seg[i] = compute(i);
+                if (i == 0) {
+                    break;
                 }
             }
         }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
+        public int compute(int i) {
+            return Math.max(seg[i*2+1], seg[i*2+2]);
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+        public int max(int l, int r) {
+            return max(l, r, 0, 0, M+1);
         }
-        return min;
-    }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
+        public int max(int l, int r, int idx, int fr, int to) {
+            if (to <= l || r <= fr) {
+                return Integer.MIN_VALUE;
             }
-            a = (a * a) % MOD;
-            x /= 2;
+            if (l <= fr && to <= r) {
+                return seg[idx];
+            }
+
+            int med = (fr+to) / 2;
+            int ret = Integer.MIN_VALUE;
+            ret = Math.max(ret, max(l, r, idx * 2+1, fr, med));
+            ret = Math.max(ret, max(l, r, idx * 2+2, med, to));
+            return ret;
         }
-        return res;
+
     }
 
     static class InputReader {
@@ -168,7 +169,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +189,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

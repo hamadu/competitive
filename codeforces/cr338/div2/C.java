@@ -1,106 +1,120 @@
-package atcoder.arc042;
+package codeforces.cr338.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 2016/01/09.
  */
-public class D {
+
+public class C {
+    private static final int INF = 1141514;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
+        String line = in.nextToken();
+        char[] material = line.toCharArray();
+        char[] materialRev = new StringBuilder(line).reverse().toString().toCharArray();
+        char[] want = in.nextToken().toCharArray();
+
+        int[][] matchL = buildMatchingLength(want, material);
+        int[][] matchR = buildMatchingLength(want, materialRev);
+
+
+        int n = want.length;
+        int m = material.length;
+        int[] dp = new int[n+1];
+        int[][] bestRange = new int[n+1][2];
+        Arrays.fill(dp, INF);
+
+        dp[0] = 0;
+        for (int i = 0; i < n ; i++) {
+            int base = dp[i];
+            if (base == INF) {
+                continue;
+            }
+
+            // forward
+            for (int k = 0; k < matchL[i][1] ; k++) {
+                int ti = i + k + 1;
+                if (ti <= n && base+1 < dp[ti]) {
+                    dp[ti] = base+1;
+                    bestRange[ti] = new int[]{matchL[i][0]+1, matchL[i][0]+k+1};
+                }
+            }
+
+            // reverse
+            for (int k = 0; k < matchR[i][1] ; k++) {
+                int ti = i + k + 1;
+                if (ti <= n && base+1 < dp[ti]) {
+                    dp[ti] = base+1;
+                    bestRange[ti] = new int[]{m-matchR[i][0], m-(matchR[i][0]+k)};
+                }
+            }
+        }
+
+        if (dp[n] == INF) {
+            out.println(-1);
         } else {
-            out.println(solve2(x, p, a, b));
+            List<int[]> r = new ArrayList<>();
+            int nn = n;
+            while (nn >= 1) {
+                int[] range = bestRange[nn];
+                r.add(range);
+                nn -= Math.abs(range[0] - range[1]) + 1;
+            }
+            Collections.reverse(r);
+
+            out.println(r.size());
+            for (int[] rr : r) {
+                out.println(rr[0] + " " + rr[1]);
+            }
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
+    private static int[][] buildMatchingLength(char[] want, char[] material) {
+        int n = want.length;
+        int m = material.length;
+        int[][] dp = new int[n][m];
+        for (int i = 0; i < n ; i++) {
+            Arrays.fill(dp[i], -1);
+        }
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < m ; j++) {
+                dfs(i, j, want, material, dp);
+            }
+        }
+
+        int[][] matching = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            int max = -1;
+            int maxPos = -1;
+            for (int j = 0; j < m ; j++) {
+                if (max < dp[i][j]) {
+                    max = dp[i][j];
+                    maxPos = j;
+                }
+            }
+            matching[i][0] = maxPos;
+            matching[i][1] = max;
+        }
+        return matching;
+    }
+
+    private static int dfs(int i, int j, char[] w, char[] m, int[][] memo) {
+        if (i >= memo.length || j >= memo[0].length) {
             return 0;
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
+        if (memo[i][j] != -1) {
+            return memo[i][j];
         }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+        memo[i][j] = w[i] == m[j] ? dfs(i+1, j+1, w, m, memo) + 1 : 0;
+        return memo[i][j];
     }
 
     static class InputReader {
@@ -168,7 +182,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +202,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

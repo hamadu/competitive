@@ -1,106 +1,111 @@
-package atcoder.arc042;
+package atcoder.ttpc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/20.
  */
-public class D {
+public class N {
+    private static final double INF = 1e10;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
+        int n = in.nextInt();
+        int m = in.nextInt();
+        int k = in.nextInt();
+        double[] val = new double[n+1];
+        Arrays.fill(val, INF);
+        val[n] = 0;
+        for (int i = 0; i < k ; i++) {
+            int idx = in.nextInt()-1;
+            val[idx] = in.nextInt();
+        }
+
+        int[][] edge = new int[m][3];
+        for (int i = 0; i < m ; i++) {
+            for (int j = 0; j <= 1 ; j++) {
+                edge[i][j] = in.nextInt()-1;
+            }
+            edge[i][2] = in.nextInt();
+        }
+
+        double left = -1e8;
+        double right = 1e8;
+        for (int i = 0 ; i < 80 ; i++) {
+            double med = (left + right) / 2;
+            if (isOK(edge, val.clone(), med)) {
+                right = med;
+            } else {
+                left = med;
+            }
+        }
+        if (left <= -1e7) {
+            out.println("#");
         } else {
-            out.println(solve2(x, p, a, b));
+            if (Math.abs(left) < 1e-7) {
+                out.println(0);
+            } else {
+                out.println(String.format("%.12f", left));
+            }
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+    private static boolean isOK(int[][] edge, double[] val, double med) {
+        int n = val.length;
+        List<Edge>[] graph = new List[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
+        for (int[] ed : edge) {
+            int a = ed[0];
+            int b = ed[1];
+            double c = ed[2];
+            graph[b].add(new Edge(b, a, med - c));
         }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
+        for (int i = 0 ; i < n-1 ; i++) {
+            if (val[i] != INF) {
+                graph[n-1].add(new Edge(n-1, i, val[i]));
+                graph[i].add(new Edge(i, n-1, -val[i]));
+            }
         }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
+        Arrays.fill(val, INF);
+
+        for (int cur = 0 ; cur <= n+5 ; cur++) {
+            boolean upd = false;
+            for (int i = 0 ; i < n ; i++) {
+                for (Edge e : graph[i]) {
+                    int j = e.to;
+                    if (val[i] + e.cost < val[j]) {
+                        upd = true;
+                        val[j] = val[i] + e.cost;
                     }
                 }
             }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
+            if (!upd) {
+                return true;
             }
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
+        return false;
     }
 
 
+    static class Edge {
+        int fr;
+        int to;
+        double cost;
 
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
+        Edge(int a, int b, double c) {
+            fr = a;
+            to = b;
+            cost = c;
         }
-        return res;
     }
 
     static class InputReader {
@@ -168,7 +173,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +193,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

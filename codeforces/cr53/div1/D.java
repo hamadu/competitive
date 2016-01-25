@@ -1,106 +1,110 @@
-package atcoder.arc042;
+package codeforces.cr53.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/07.
  */
 public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int m = in.nextInt();
+
+        char[][] map = new char[n][];
+        for (int i = 0; i < n ; i++) {
+            map[i] = in.nextToken().toCharArray();
         }
+
+        int all = 0;
+        int[] degX = new int[m];
+        int[] degY = new int[n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m ; j++) {
+                if (map[i][j] == '.') {
+                    degX[j]++;
+                    degY[i]++;
+                    all++;
+                }
+            }
+        }
+        double base = solve(degX) + solve(degY);
+
+        int[][] x = new int[1000][2];
+        int xn = 0;
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < m ; j++) {
+               if (map[i][j] == 'X') {
+                   x[xn][0] = i;
+                   x[xn][1] = j;
+                   xn++;
+               }
+            }
+        }
+        x = Arrays.copyOf(x, xn);
+
+        long additionalMove = 0;
+
+        // vertical move : sort by x
+        for (final int xy : new int[]{0, 1}) {
+            Arrays.sort(x, (x1, x2) -> x1[1-xy]-x2[1-xy]);
+            for (int i = 0; i < xn; i++) {
+                // bottom to top
+                {
+                    int to = i;
+                    for (int j = i+1; j < xn; j++) {
+                        if (x[j][1-xy] != x[j-1][1-xy]+1 || x[j-1][xy] >= x[j][xy]) {
+                            break;
+                        }
+                        to++;
+                    }
+                    // fr-to
+                    int max = (xy == 0) ? n : m;
+                    for (int j = i; j <= to; j++) {
+                        additionalMove += ((j == i) ? 2 : 4) * x[i][xy] * (max-x[j][xy]-1);
+                    }
+                }
+                // top to bottom
+                {
+                    int to = i;
+                    for (int j = i+1; j < xn; j++) {
+                        if (x[j][1-xy] != x[j-1][1-xy]+1 || x[j-1][xy] <= x[j][xy]) {
+                            break;
+                        }
+                        to++;
+                    }
+                    // fr-to
+                    int max = (xy == 0) ? n : m;
+                    for (int j = i; j <= to; j++) {
+                        additionalMove += ((j == i) ? 2 : 4) * (max-x[i][xy]-1) * x[j][xy];
+                    }
+                }
+            }
+        }
+
+        out.println(base + additionalMove * 1.0d / all / all);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
+    private static double solve(int[] deg) {
+        int n = deg.length;
+        int total = 0;
+        for (int i = 0; i < n ; i++) {
+            total += deg[i];
         }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
+        double ret = 0;
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < n ; j++) {
+                ret += Math.abs(i-j) * deg[i] * deg[j];
             }
         }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+        return ret / total / total;
     }
 
     static class InputReader {
@@ -168,7 +172,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +192,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

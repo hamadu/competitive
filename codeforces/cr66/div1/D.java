@@ -1,107 +1,104 @@
-package atcoder.arc042;
+package codeforces.cr66.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/08.
  */
 public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
-        }
-        out.flush();
-    }
+        int n = in.nextInt();
+        int m = in.nextInt();
+        int k = in.nextInt();
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
+        UnionFind uf = new UnionFind(n);
+        for (int i = 0; i < m ; i++) {
+            int a = in.nextInt()-1;
+            int b = in.nextInt()-1;
+            uf.unite(a, b);
         }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
+        int[] degs = new int[n];
+        for (int i = 0; i < n ; i++) {
+            degs[uf.find(i)]++;
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
+        Arrays.sort(degs);
+        for (int i = 0; i < n ; i++) {
+            if (degs[i] >= 1) {
+                degs = Arrays.copyOfRange(degs, i, n);
                 break;
             }
         }
-        return min;
-    }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
+        Queue<Integer> pq = new PriorityQueue<>();
+        for (int d : degs) {
+            pq.add(d);
         }
-        return res;
+        int sum = 0;
+        for (int i = 0; i < degs.length; i++) {
+            sum += Math.min(degs[i], k);
+        }
+        int roads = 0;
+        int dl = degs.length;
+        while (sum < 2*dl-2) {
+            int last1 = pq.poll();
+            int last2 = pq.poll();
+            sum -= Math.min(last1, k);
+            sum -= Math.min(last2, k);
+            sum += Math.min(last1+last2, k);
+            pq.add(last1+last2);
+            dl--;
+            roads++;
+        }
+        out.println(roads);
+        out.flush();
     }
+
+    static class UnionFind {
+        int[] parent, rank;
+        UnionFind(int n) {
+            parent = new int[n];
+            rank = new int[n];
+            for (int i = 0 ; i < n ; i++) {
+                parent[i] = i;
+                rank[i] = 0;
+            }
+        }
+
+        int find(int x) {
+            if (parent[x] == x) {
+                return x;
+            }
+            parent[x] = find(parent[x]);
+            return parent[x];
+        }
+
+        void unite(int x, int y) {
+            x = find(x);
+            y = find(y);
+            if (x == y) {
+                return;
+            }
+            if (rank[x] < rank[y]) {
+                parent[x] = y;
+            } else {
+                parent[y] = x;
+                if (rank[x] == rank[y]) {
+                    rank[x]++;
+                }
+            }
+        }
+        boolean issame(int x, int y) {
+            return (find(x) == find(y));
+        }
+    }
+
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +165,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +185,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

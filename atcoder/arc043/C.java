@@ -1,107 +1,105 @@
-package atcoder.arc042;
+package atcoder.arc043;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/19.
  */
-public class D {
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
+        int n = in.nextInt();
+        int[] a = new int[n];
+        int[] b = new int[n];
+        for (int i = 0; i < n ; i++) {
+            a[i] = in.nextInt()-1;
+        }
+        for (int i = 0; i < n ; i++) {
+            b[i] = in.nextInt()-1;
+        }
+
+        int[] invA = new int[n];
+        for (int i = 0; i < n ; i++) {
+            invA[a[i]] = i;
+        }
+        int[] q = new int[n];
+        for (int i = 0; i < n ; i++) {
+            q[i] = invA[b[i]];
+        }
+
+        long x = inverseCount(q);
+        if (x % 2 == 1) {
+            out.println(-1);
         } else {
-            out.println(solve2(x, p, a, b));
+            long want = x / 2;
+            int[] arr = build(want, n);
+            int[] ans = new int[n];
+            for (int i = 0; i < n ; i++) {
+                ans[i] = a[arr[i]];
+            }
+            StringBuilder line = new StringBuilder();
+            for (int i = 0; i < n ; i++) {
+                line.append(' ').append(ans[i]+1);
+            }
+            out.println(line.substring(1));
         }
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
+    private static int[] build(long d, int n) {
+        int[] ret = new int[n];
+        return ret;
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+    private static long inverseCount(int[] q) {
+        int n = q.length;
+        long cnt = 0;
+        BIT bit = new BIT(n+10);
+        for (int i = 0; i < n ; i++) {
+            int num = q[i]+1;
+            cnt += bit.range(num+1, n+5);
+            bit.add(num, 1L);
         }
-        return min;
+        return cnt;
     }
 
 
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
+    // BIT, 1-indexed, range : [a,b]
+    static class BIT {
+        long N;
+        long[] data;
+        BIT(int n) {
+            N = n;
+            data = new long[n+1];
         }
-        return res;
+
+        long sum(int i) {
+            long s = 0;
+            while (i > 0) {
+                s += data[i];
+                i -= i & (-i);
+            }
+            return s;
+        }
+
+        long range(int i, int j) {
+            return sum(j) - sum(i-1);
+        }
+
+        void add(int i, long x) {
+            while (i <= N) {
+                data[i] += x;
+                i += i & (-i);
+            }
+        }
     }
+
 
     static class InputReader {
         private InputStream stream;
@@ -168,7 +166,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +186,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

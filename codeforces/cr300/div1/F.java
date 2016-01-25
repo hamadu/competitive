@@ -1,106 +1,69 @@
-package atcoder.arc042;
+package codeforces.cr300.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.*;
 
-/**
- * Created by hama_du on 15/11/02.
- */
-public class D {
+public class F {
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int[] r = new int[n];
+        for (int i = 0 ; i < n ; i++) {
+            r[i] = in.nextInt();
         }
+
+        int[] imos = new int[n+2];
+        for (int i = 1 ; i < n ; i++) {
+            int last_ary = -1;
+            int prev_parent = -1;
+            for (int ary = 1 ; ary < n ; ary++) {
+                int parent = (i - 1) / ary;
+                if (prev_parent == parent) {
+                    break;
+                }
+                prev_parent = parent;
+                last_ary = ary+1;
+                if (r[parent] > r[i]) {
+                    imos[ary]++;
+                    imos[ary+1]--;
+                }
+            }
+
+            for (int p = prev_parent ; p >= 0 ; p--) {
+                int to_ary = -1;
+                if (p == 0) {
+                    to_ary = n;
+                } else {
+                    to_ary = (i - 1) / p;
+                }
+                if (r[p] > r[i]) {
+                    imos[last_ary]++;
+                    imos[to_ary+1]--;
+                }
+                last_ary = to_ary+1;
+            }
+        }
+
+
+        for (int i = 2 ; i <= n ; i++) {
+            imos[i] += imos[i-1];
+        }
+
+        StringBuilder b = new StringBuilder();
+        for (int i = 1 ; i < n ; i++) {
+            b.append(' ').append(imos[i]);
+        }
+        out.println(b.substring(1));
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
+    static void debug(Object... o) {
+        System.err.println(Arrays.deepToString(o));
     }
 
     static class InputReader {
@@ -134,10 +97,10 @@ public class D {
             while (isSpaceChar(c))
                 c = next();
             if ('a' <= c && c <= 'z') {
-                return (char) c;
+                return (char)c;
             }
             if ('A' <= c && c <= 'Z') {
-                return (char) c;
+                return (char)c;
             }
             throw new InputMismatchException();
         }
@@ -148,7 +111,7 @@ public class D {
                 c = next();
             StringBuilder res = new StringBuilder();
             do {
-                res.append((char) c);
+                res.append((char)c);
                 c = next();
             } while (!isSpaceChar(c));
             return res.toString();
@@ -202,8 +165,7 @@ public class D {
             public boolean isSpaceChar(int ch);
         }
     }
-
-    static void debug(Object... o) {
-        System.err.println(Arrays.deepToString(o));
-    }
 }
+
+
+

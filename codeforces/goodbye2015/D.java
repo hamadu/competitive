@@ -1,106 +1,94 @@
-package atcoder.arc042;
+package codeforces.goodbye2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 2016/01/06.
  */
 public class D {
+    private static final int MOD = 1000000007;
+
+    static int n;
+    static char[] ln;
+    static int[][] dp0;
+    static int INF = 114514;
+
+    static int dfs(int l, int r) {
+        if (r >= n) {
+            return INF;
+        }
+        if (dp0[l][r] != -1) {
+            return dp0[l][r];
+        }
+        int ret = 0;
+        if (ln[l] == ln[r]) {
+            ret = dfs(l+1, r+1) + 1;
+        }
+        dp0[l][r] = ret;
+        return ret;
+    }
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        n = in.nextInt();
+        ln = in.nextToken().toCharArray();
+        dp0 = new int[n][n];
+        for (int i = 0; i < n ; i++) {
+            Arrays.fill(dp0[i], -1);
         }
+        for (int i = 0; i < n ; i++) {
+            for (int j = i+1 ; j < n; j++) {
+                dfs(i, j);
+            }
+        }
+
+        int[][] dp = new int[n][n+1];
+        for (int i = 0; i < n ; i++) {
+            dp[0][i+1] = 1;
+        }
+        for (int head = 1; head < n ; head++) {
+            if (ln[head] == '0') {
+                continue;
+            }
+            long[] imos = new long[n+10];
+            for (int i = 0; i < n ; i++) {
+                imos[i+1] = (imos[i] + dp[i][head]) % MOD;
+            }
+            for (int tail = head+1 ; tail <= n ; tail++) {
+                int len = tail - head;
+                int max = head;
+                int min = Math.max(0, head-len+1);
+
+                // [head-len+1...head)[head...tail)
+                if (min <= max) {
+                    dp[head][tail] += (imos[max+1] - imos[min] + MOD) % MOD;
+                    dp[head][tail] %= MOD;
+                }
+
+                // [head-len...head)[head...tail)
+                if (head-len >= 0) {
+                    int addr = dp0[head-len][head];
+                    if (addr < len && ln[head-len+addr] < ln[head+addr]) {
+                        dp[head][tail] += dp[head-len][head];
+                        dp[head][tail] %= MOD;
+                    }
+                }
+            }
+        }
+
+        long sum = 0;
+        for (int i = 0; i < n ; i++) {
+            sum += dp[i][n];
+        }
+        sum %= MOD;
+        out.println(sum);
         out.flush();
-    }
-
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
-
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
-
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
-            }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
-        }
-        return min;
-    }
-
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
-        }
-        return res;
     }
 
     static class InputReader {
@@ -168,7 +156,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +176,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

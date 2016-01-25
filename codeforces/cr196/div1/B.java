@@ -1,106 +1,116 @@
-package atcoder.arc042;
+package codeforces.cr196.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/10.
  */
-public class D {
+public class B {
+    private static final int INF = 114514;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
+        int n = in.nextInt();
+        int m = in.nextInt();
+        int d = in.nextInt();
+        isEvil = new boolean[n];
+        for (int i = 0; i < m ; i++) {
+            isEvil[in.nextInt()-1] = true;
         }
+        graph = buildGraph(in, n, n-1);
+        mark = new boolean[n];
+        far = new int[n];
+        farto = new int[n];
+        dfs(0, -1);
+        dfs2(0, -1, -INF, d);
+
+        int cnt = 0;
+        for (int i = 0; i < n ; i++) {
+            if (mark[i]) {
+                cnt++;
+            }
+        }
+        out.println(cnt);
         out.flush();
     }
 
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
-            }
-        }
+    static boolean[] mark;
+    static boolean[] isEvil;
+    static int[][] graph;
+    static int[] far;
+    static int[] farto;
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
+    static int dfs(int now, int par) {
+        int f = isEvil[now] ? 0 : -INF;
+        int best = -1;
+        for (int to : graph[now]) {
+            if (to != par) {
+                int re = dfs(to, now);
+                if (re >= 0 && f < re+1) {
+                    f = re+1;
+                    best = to;
                 }
             }
         }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
+        far[now] = f;
+        farto[now] = best;
+        return f;
     }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
+    static void dfs2(int now, int par, int val, int D) {
+        if (isEvil[now] && val <= -1) {
+            val = 0;
+        }
+        int max = Math.max(far[now], val);
+        if (max <= D) {
+            mark[now] = true;
+        }
+        for (int to : graph[now]) {
+            if (to == par) {
+                continue;
+            }
+            int rev = val+1;
+            if (to != farto[now]) {
+                rev = Math.max(rev, far[now]+1);
             } else {
-                val *= x;
-                val %= p;
+                for (int to2 : graph[now]) {
+                    if (to == to2 || to2 == par) {
+                        continue;
+                    }
+                    rev = Math.max(rev, far[to2]+2);
+                }
             }
-            min = Math.min(min, val);
-            if (min <= 1) {
-                break;
-            }
+            dfs2(to, now, rev, D);
         }
-        return min;
     }
 
-
-
-    static long pow(long a, long x, long MOD) {
-        long res = 1;
-        while (x > 0) {
-            if (x % 2 != 0) {
-                res = (res * a) % MOD;
-            }
-            a = (a * a) % MOD;
-            x /= 2;
+    static int[][] buildGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][] graph = new int[n][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt()-1;
+            int b = in.nextInt()-1;
+            deg[a]++;
+            deg[b]++;
+            edges[i] = new int[]{a, b};
         }
-        return res;
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            graph[a][--deg[a]] = b;
+            graph[b][--deg[b]] = a;
+        }
+        return graph;
     }
 
     static class InputReader {
@@ -168,7 +178,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +198,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

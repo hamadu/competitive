@@ -1,97 +1,73 @@
-package atcoder.arc042;
+package atcoder.arc044;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/11/02.
+ * Created by hama_du on 15/09/19.
  */
-public class D {
+public class B {
+    private static final long MOD = 1000000007;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x = in.nextInt();
-        long p = in.nextInt();
-        long a = in.nextInt();
-        long b = in.nextInt();
-        if (b-a <= (1<<25)) {
-            out.println(solve(x, p, a, b));
-        } else {
-            out.println(solve2(x, p, a, b));
-        }
-        out.flush();
-    }
-
-    static long solve2(long x, long p, long a, long b) {
-        if (x % p == 0) {
-            return 0;
-        }
-        Map<Long,Long> lmap = new HashMap<>();
-        long M = (int)(Math.sqrt(p)+1);
-        long xm = pow(x, M, p);
-        for (long i = 1 ; i <= M; i++) {
-            lmap.put(pow(xm, i, p), i);
-        }
-        long[] xf = new long[(int)M+1];
-        xf[0] = 1;
-        for (int i = 1; i <= M; i++) {
-            xf[i] = (xf[i-1] * x) % p;
-        }
-        long L1 = Long.MAX_VALUE;
-        for (long L = 1 ; L <= 1 ; L++) {
-            for (int f = 0; f <= M; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M * lmap.get(lm)-f;
-                    if (y > 0) {
-                        L1 = Math.min(L1, y);
-                    }
-                }
+        boolean wrong = false;
+        int n = in.nextInt();
+        int[] cnt = new int[n];
+        int max = 0;
+        for (int i = 0; i < n ; i++) {
+            int d = in.nextInt();
+            cnt[d]++;
+            if (i == 0 && d != 0) {
+                wrong = true;
             }
+            max = Math.max(max, d);
+        }
+        if (cnt[0] >= 2) {
+            wrong = true;
         }
 
-        for (long L = 1 ; ; L++) {
-            // solve L = X^Y mod p (a <= Y <= b)
-            for (int f = 0; f <= M ; f++) {
-                long lm = (xf[f] * L) % p;
-                if (lmap.containsKey(lm)) {
-                    long y = M*lmap.get(lm)-f;
-                    y = y % L1;
-                    y = y + ((a - y + L1 - 1) / L1) * L1;
-                    if (a <= y && y <= b) {
-                        return L;
-                    }
-                }
-            }
-        }
-//        throw new RuntimeException(x + " " + p + " " + a + " " + b);
-    }
 
-    static long solve(long x, long p, long a, long b) {
-        long min = p-1;
-        long val = 0;
-        for (long c = a ; c <= b ; c++) {
-            if (c == a) {
-                val = pow(x, a, p);
-            } else {
-                val *= x;
-                val %= p;
+        long[] pow2MOD = new long[4*n];
+        pow2MOD[0] = 1;
+        for (int i = 1; i < pow2MOD.length ; i++) {
+            pow2MOD[i] = (pow2MOD[i-1] * 2) % MOD;
+        }
+
+        long ptn = 1;
+        for (int d = 1 ;  d < n ; d++) {
+            int prev = cnt[d-1];
+            int next = cnt[d];
+            for (int f = 0 ; f < next ; f++) {
+                ptn *= (pow2MOD[prev]-1+MOD)%MOD;
+                ptn %= MOD;
             }
-            min = Math.min(min, val);
-            if (min <= 1) {
+            if (d == max) {
                 break;
             }
         }
-        return min;
+
+        long freeEdges = 0;
+        for (int d = 1 ; d < n ; d++) {
+            freeEdges += 1L*cnt[d]*(cnt[d]-1L)/2;
+        }
+
+        ptn *= pow(2, freeEdges);
+        ptn %= MOD;
+
+        if (wrong) {
+            ptn = 0;
+        }
+        out.println(ptn);
+        out.flush();
     }
 
-
-
-    static long pow(long a, long x, long MOD) {
+    static long pow(long a, long x) {
         long res = 1;
         while (x > 0) {
             if (x % 2 != 0) {
@@ -168,7 +144,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -188,7 +164,7 @@ public class D {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
