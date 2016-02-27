@@ -1,76 +1,87 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.kupc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.Stack;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/10/24.
  */
 public class F {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
+        char[] s = in.nextToken().toCharArray();
+
+        int n = s.length;
+        parent = new int[n];
+        children = new int[n][2];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            Arrays.fill(children[i], -1);
         }
+        Arrays.fill(parent, -1);
+
+        Stack<Integer> stk = new Stack<>();
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+            if (s[i] == '-' || s[i] == '+' || s[i] == '*') {
+                int r = stk.pop();
+                int l = stk.pop();
+                children[i][0] = l;
+                children[i][1] = r;
+                parent[l] = parent[r] = i;
+                stk.push(i);
+            } else {
+                stk.push(i);
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
+        vs = new V[n];
+        dfs(stk.pop(), 0, 0);
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        Arrays.sort(vs);
+        char[] ord = new char[n];
+        for (int i = 0; i < n ; i++) {
+            ord[i] = s[vs[i].idx];
+        }
+        out.println(String.valueOf(ord));
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    static int[][] children;
+    static int[] parent;
+    static V[] vs;
+
+    static class V implements Comparable<V> {
+        int idx;
+        int d;
+        long s;
+
+        public V(int i, int di, long si) {
+            idx = i;
+            d = di;
+            s = si;
         }
-        return line.substring(1);
+
+        @Override
+        public int compareTo(V o) {
+            if (d != o.d) {
+                return o.d-d;
+            }
+            return Long.compare(o.s, s);
+        }
     }
+
+    public static void dfs(int now, int depth, long score) {
+        vs[now] = new V(now, depth, score);
+        if (children[now][0] != -1) {
+            dfs(children[now][1], depth+1, score*2+1);
+            dfs(children[now][0], depth+1, score*2);
+        }
+    }
+
 
     static class InputReader {
         private InputStream stream;

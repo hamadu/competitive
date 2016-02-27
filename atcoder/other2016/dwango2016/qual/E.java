@@ -1,75 +1,94 @@
-package codeforces.wunderfund2016;
+package atcoder.other2016.dwango2016.qual;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 2016/01/23.
  */
-public class F {
+public class E {
+    static final long INF = (long)1e18;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
+        int l = in.nextInt();
 
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
+        Set<Integer> timeset = new HashSet<>();
+        int[][] fire = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            fire[i][0] = in.nextInt();
+            fire[i][1] = in.nextInt();
+            timeset.add(fire[i][0]);
+        }
+        List<Integer> times = new ArrayList<>();
+        for (int t : timeset) {
+            times.add(t);
+        }
+        Collections.sort(times);
+        Map<Integer,Integer> timeMap = new HashMap<>();
+        for (int i = 0 ; i < times.size() ; i++) {
+            timeMap.put(times.get(i), i);
+        }
+        int tn = timeMap.size();
+
+        List<Integer>[] timeFires = new List[tn];
+        for (int i = 0 ; i < tn ; i++) {
+            timeFires[i] = new ArrayList<>();
+        }
         for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+            int t = timeMap.get(fire[i][0]);
+            timeFires[t].add(fire[i][1]);
+        }
+        long[][] timeFireImos = new long[tn][];
+        for (int i = 0 ; i < tn ; i++) {
+            int firenum = timeFires[i].size();
+            timeFireImos[i] = new long[firenum+1];
+            for (int f = 0 ; f < firenum ; f++) {
+                timeFireImos[i][f+1] = timeFireImos[i][f] + timeFires[i].get(f);
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
+        long[][] dp = new long[tn+1][l+1];
+        for (int i = 0; i <= tn; i++) {
+            Arrays.fill(dp[i], INF);
+        }
+        dp[0][0] = 0;
 
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        long[] prevTable = new long[l+2];
+        for (int i = 1 ; i <= tn ; i++) {
+            Arrays.fill(prevTable, INF);
+            prevTable[0] = dp[i-1][0];
+            for (int j = 1 ; j <= l ; j++) {
+                prevTable[j] = Math.min(prevTable[j-1], dp[i-1][j]);
+            }
+            for (int j = 0; j <= l ; j++) {
+                dp[i][j] = prevTable[j] + computeThat(j, timeFires[i-1], timeFireImos[i-1]); // fire?
+            }
+        }
+
+        long best = INF;
+        for (int i = 0; i <= l ; i++) {
+            best = Math.min(best, dp[tn][i]);
+        }
+        out.println(best);
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static long computeThat(long pos, List<Integer> timeFire, long[] timeFireImos) {
+        int idx = Collections.binarySearch(timeFire, (int)pos);
+        if (idx < 0) {
+            idx = -idx-1;
         }
-        return line.substring(1);
+        long left = timeFireImos[idx];
+        long right = timeFireImos[timeFireImos.length-1] - left;
+        long ln = idx;
+        long rn = timeFire.size()-ln;
+        return (pos * ln - left) + (right - pos * rn);
     }
 
     static class InputReader {

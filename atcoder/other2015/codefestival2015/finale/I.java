@@ -1,76 +1,113 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.codefestival2015.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/11/14.
  */
-public class F {
+public class I {
+
+    static class Balloon implements Comparable<Balloon> {
+        int idx;
+        int height;
+        int parent;
+        int cost;
+        Balloon next;
+
+        Balloon(int i, int h, int p) {
+            idx = i;
+            height = h;
+            parent = p;
+            cost = 0;
+        }
+
+        @Override
+        public int compareTo(Balloon o) {
+            return o.height - height;
+        }
+    }
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
+        int[] tree = new int[n];
+        int[] parent = new int[n];
+
+        int[] l = new int[n];
+        int[] height = new int[n];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            l[i] = in.nextInt();
         }
+        height[0] = l[0];
+        parent[0] = -1;
+
+        for (int i = 1; i < n ; i++) {
+            int p = in.nextInt();
+            height[i] = height[p] + l[i];
+            parent[i] = p;
+        }
+
+        int q = in.nextInt();
+        int[][] queries = new int[q][2];
+        for (int i = 0; i < q ; i++) {
+            queries[i][0] = i;
+            queries[i][1] = in.nextInt();
+        }
+
+        Set<Integer> heights = new HashSet<>();
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
+            heights.add(height[i]);
         }
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
+        Arrays.sort(queries, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o2[1] - o1[1];
+            }
+        });
+        int[] answer = new int[q];
 
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        Balloon[] bl = new Balloon[n];
+        for (int i = 0; i < n ; i++) {
+            bl[i] = new Balloon(i, height[i], parent[i]);
+        }
+        for (int i = 1; i < n ; i++) {
+            bl[i].next = bl[parent[i]];
+        }
+        Queue<Balloon> que = new PriorityQueue<>();
+        for (int i = 0; i < n ; i++) {
+            que.add(bl[i]);
+        }
+
+        int cut = 0;
+        for (int i = 0; i < q ; i++) {
+            int he = queries[i][1];
+            if (!heights.contains(he)) {
+                answer[queries[i][0]] = -1;
+                continue;
+            }
+            while (que.size() >= 1 && que.peek().height > he) {
+                Balloon ba = que.poll();
+                cut++;
+                if (ba.next != null) {
+                    ba.next.cost++;
+                }
+                cut-=ba.cost;
+            }
+            answer[queries[i][0]] = cut;
+        }
+
+        for (int i = 0; i < q ; i++) {
+            out.println(answer[i]);
+        }
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
-        }
-        return line.substring(1);
-    }
 
     static class InputReader {
         private InputStream stream;

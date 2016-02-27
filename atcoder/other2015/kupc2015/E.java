@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.kupc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,70 +7,72 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/10/24.
  */
-public class F {
+public class E {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+        while (--n >= 0) {
+            int h = in.nextInt();
+            int w = in.nextInt();
+            out.println(solve(h, w));
         }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
-        }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static double solve(double H, double W, double x) {
+        double y = Math.sqrt(4*H*H*W*W+4*H*H*x*x-4*H*W*W*x-4*H*x*x*x+W*W*W*W-2*W*W*x*x+x*x*x*x) / (2 * W);
+        double z = (2*H*x+W*W-x*x) / 2*W;
+        if (y > W || z > W) {
+            return 0;
         }
-        return line.substring(1);
+        double a = x*x+y*y;
+        double b = (H-x)*(H-x)+z*z;
+        double c = H*H+(W-z)*(W-z);
+        return Math.min(a, Math.min(b, c));
     }
+
+    private static double solve(double H, double W) {
+        if (W < H) {
+            return solve(W, H);
+        }
+        return Math.max(try0(H, W), try1(H, W));
+    }
+
+    private static double try0(double H, double W) {
+        double min = 0;
+        double max = H;
+        double best = Math.min(W*W, H*H+W*W/4);
+        best = Math.max(best, Math.min(H*H, H*H/4+W*W));
+
+//        for (int cur = 0 ; cur < 50 ; cur++) {
+//            double med1 = (min * 2 + max) / 3;
+//            double med2 = (min + max * 2) / 3;
+//            double b1 = solve(H, W, med1);
+//            double b2 = solve(H, W, med2);
+//            if (b1 < b2) {
+//                min = med1;
+//            } else {
+//                max = med2;
+//            }
+//            best = Math.max(best, Math.max(b1, b2));
+//        }
+        return Math.sqrt(best);
+    }
+
+    private static double try1(double H, double W) {
+        double x = Math.sqrt(3)*H-W;
+        double y = Math.sqrt(3)*W-H;
+        if (x < 0 || y < 0 || x > W || y > H) {
+            return 0;
+        }
+        return Math.sqrt(x*x+y*y);
+    }
+
+
 
     static class InputReader {
         private InputStream stream;

@@ -1,75 +1,89 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.ttpc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/09/20.
  */
-public class F {
+public class M {
+    private static final int INF = 100000000;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
+        int m = in.nextInt();
+        int[] c = new int[n];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            c[i] = in.nextInt();
         }
+        int[][] graph = buildGraph(in, n, m);
+
+        int[] dist = computeDistance(graph);
+        int state = 0;
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+            if (dist[i] == 0 || dist[i] >= INF) {
+                continue;
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
+            if (c[i] >= 1 && dist[i] % 2 == 1) {
+                state ^= c[i];
             }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        out.println(state == 0 ? "Second" : "First");
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    static int[] computeDistance(int[][] graph) {
+        int n = graph.length;
+        int[] d = new int[n];
+        Arrays.fill(d, INF);
+
+        Queue<Integer> q = new ArrayBlockingQueue<>(n*4);
+        q.add(0);
+        q.add(0);
+        while (q.size() >= 1) {
+            int now = q.poll();
+            int time = q.poll();
+            for (int to : graph[now]) {
+                int tim = time + 1;
+                if (d[to] > tim) {
+                    d[to] = tim;
+                    q.add(to);
+                    q.add(tim);
+                }
+            }
         }
-        return line.substring(1);
+        return d;
+    }
+
+    static int[][] buildGraph(InputReader in, int n, int m) {
+        int[][] edges = new int[m][];
+        int[][] graph = new int[n][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = in.nextInt();
+            int b = in.nextInt();
+            deg[a]++;
+            deg[b]++;
+            edges[i] = new int[]{a, b};
+        }
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges[i][0];
+            int b = edges[i][1];
+            graph[a][--deg[a]] = b;
+            graph[b][--deg[b]] = a;
+        }
+        return graph;
     }
 
     static class InputReader {

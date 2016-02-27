@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.codefestival2015.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,70 +7,75 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/11/14.
  */
-public class F {
+public class E {
+    public static int solve(String s, int in) {
+        int out = in;
+        char[] c = s.toCharArray();
+        for (int i = c.length-1 ; i >= 0 ; i--) {
+            if (c[i] == '-') {
+                out *= -1;
+            } else {
+                if (c[i] == '!') {
+                    if (out == 0) {
+                        out = 1;
+                    } else {
+                        out = 0;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    static int[] buildTable(String s) {
+        int[] table = new int[513];
+        for (int i = -256 ; i <= 256 ; i++) {
+            table[i+256] = solve(s, i);
+        }
+        return table;
+    }
+
+    static int[] answerTable;
+    static String ans = null;
+
+    static void dfs(String now, int limit) {
+        if (now.length() >= limit) {
+            int[] tbl = buildTable(now);
+            boolean isOK = true;
+            for (int i = 0; i < tbl.length; i++) {
+                if (answerTable[i] != tbl[i]) {
+                    isOK = false;
+                    break;
+                }
+            }
+            if (isOK) {
+                ans = now;
+            }
+            return;
+        }
+        dfs(now + "-", limit);
+        dfs(now + "!", limit);
+    }
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
+        String s = in.nextToken();
+        answerTable = buildTable(s);
 
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
+        for (int l = 0; l <= 20; l++) {
+            dfs("", l);
+            if (ans != null) {
                 break;
             }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        out.println(ans);
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
-        }
-        return line.substring(1);
-    }
 
     static class InputReader {
         private InputStream stream;

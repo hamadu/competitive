@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.kupc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/10/24.
  */
-public class F {
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
@@ -18,58 +18,45 @@ public class F {
         long[] a = new long[n];
         long[] b = new long[n];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            a[i] = in.nextLong();
         }
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
+            b[i] = in.nextLong();
         }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
-        }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        out.println(solve(a, b));
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static long solve(long[] a, long[] b) {
+        long n = a.length;
+        long max = b[0] * n;
+
+        long now = 0;
+        long used = 0;
+        long maxB = b[0];
+        for (int i = 1 ; i < n; i++) {
+            long to = a[i-1] + now;
+            if (to < 0) {
+                long need = -to;
+                if (maxB == 0) {
+                    break;
+                }
+                long uf = (need + maxB - 1) / maxB;
+                used += uf;
+                to += maxB * uf;
+            }
+            maxB = Math.max(maxB, b[i]);
+            used++;
+            if (used > n) {
+                break;
+            }
+            max = Math.max(max, to + maxB * (n - used));
+            now = to;
         }
-        return line.substring(1);
+        if (used == n-1 && a[(int)n-1] >= 0) {
+            max = Math.max(max, now + a[(int)n-1]);
+        }
+        return max;
     }
 
     static class InputReader {

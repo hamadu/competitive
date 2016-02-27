@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.tenka2015.qualb;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,70 +7,129 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/08/01.
  */
-public class F {
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
-        }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        long L = in.nextLong();
+        out.println(solve(L) % MOD);
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static long solve(long L) {
+        if (L <= 300) {
+            return doe(L);
         }
-        return line.substring(1);
+        long div2 = inv(2) % MOD;
+        long ans = 0;
+        // a<a+1<b
+        {
+            long lim = L / 3;
+            long add = (((((lim-1) % MOD) * (lim % MOD)) % MOD) * div2) % MOD;
+            long dec = 0;
+            long dl = lim;
+            while (true) {
+                long a3 = dl*3+3;
+                if (a3 > L) {
+                    dec += dl-1;
+                } else {
+                    long max = (4 * dl-L+1);
+                    long dc = (max / 4) + 1;
+                    long first = max % 4;
+                    long ada = ((((first + max) % MOD) * (dc % MOD) % MOD) * div2) % MOD;
+                    dec += ada;
+                    dec %= MOD;
+                    break;
+                }
+                dl--;
+            }
+            ans += add;
+            ans += (MOD-dec);
+            ans %= MOD;
+        }
+
+        {
+            long add = 0;
+            long dec = 0;
+            long dl = L / 2 + 1;
+            add += ((((dl % MOD) * ((dl - 1) % MOD)) % MOD) * div2) % MOD;
+            while (true) {
+                long a3 = dl * 2 + 5;
+                if (a3 > L) {
+                    dec += dl-1;
+                    dec %= MOD;
+                } else {
+                    long min = (L - a3) + 3;
+                    long max = dl - min + 1;
+                    long first = max % 3;
+                    long dc = (max - first) / 3 + 1;
+                    dec += ((((first + max) % MOD) * (dc % MOD) % MOD) * div2) % MOD;
+                    dec %= MOD;
+                    break;
+                }
+                dl--;
+            }
+            ans += add;
+            ans += (MOD-dec);
+            ans %= MOD;
+        }
+
+        // a<a+1<a+2
+        long lm = L / 3 + 3;
+        while (true) {
+            if (lm * 3 + 3 <= L) {
+                ans += (MOD - (lm - 1) % MOD);
+                ans %= MOD;
+                break;
+            }
+            lm--;
+        }
+        return ans;
     }
+
+    static long doe(long l) {
+        long ans = 0;
+        for (int a = 1 ; a <= l ; a++) {
+            for (int b = a+1; b <= l ; b++) {
+                for (int c = b+1 ; c <= l ; c++) {
+                    if (Math.abs(b-a) == 1 || Math.abs(c-b) == 1) {
+                    } else {
+                        continue;
+                    }
+                    if (c < a+b && a+b+c <= l) {
+                        ans++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        //debug(l,downer,upper,ans);
+        return ans;
+    }
+
+
+    static final long MOD = 1000000007;
+
+    static long pow(long a, long x) {
+        long res = 1;
+        while (x > 0) {
+            if (x % 2 != 0) {
+                res = (res * a) % MOD;
+            }
+            a = (a * a) % MOD;
+            x /= 2;
+        }
+        return res;
+    }
+
+    static long inv(long a) {
+        return pow(a, MOD - 2) % MOD;
+    }
+
 
     static class InputReader {
         private InputStream stream;
@@ -137,7 +196,7 @@ public class F {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c-'0';
+                res += c - '0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -157,7 +216,7 @@ public class F {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c-'0';
+                res += c - '0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;

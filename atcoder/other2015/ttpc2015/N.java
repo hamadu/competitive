@@ -1,75 +1,110 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.ttpc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/09/20.
  */
-public class F {
+public class N {
+    private static final double INF = 1e10;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+        int m = in.nextInt();
+        int k = in.nextInt();
+        double[] val = new double[n+1];
+        Arrays.fill(val, INF);
+        val[n] = 0;
+        for (int i = 0; i < k ; i++) {
+            int idx = in.nextInt()-1;
+            val[idx] = in.nextInt();
         }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
 
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+        int[][] edge = new int[m][3];
+        for (int i = 0; i < m ; i++) {
+            for (int j = 0; j <= 1 ; j++) {
+                edge[i][j] = in.nextInt()-1;
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
+            edge[i][2] = in.nextInt();
         }
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        double left = -1e8;
+        double right = 1e8;
+        for (int i = 0 ; i < 80 ; i++) {
+            double med = (left + right) / 2;
+            if (isOK(edge, val.clone(), med)) {
+                right = med;
+            } else {
+                left = med;
+            }
+        }
+        if (left <= -1e7) {
+            out.println("#");
+        } else {
+            if (Math.abs(left) < 1e-7) {
+                out.println(0);
+            } else {
+                out.println(String.format("%.12f", left));
+            }
+        }
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static boolean isOK(int[][] edge, double[] val, double med) {
+        int n = val.length;
+        List<Edge>[] graph = new List[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
         }
-        return line.substring(1);
+        for (int[] ed : edge) {
+            int a = ed[0];
+            int b = ed[1];
+            double c = ed[2];
+            graph[b].add(new Edge(b, a, med - c));
+        }
+        for (int i = 0 ; i < n-1 ; i++) {
+            if (val[i] != INF) {
+                graph[n-1].add(new Edge(n-1, i, val[i]));
+                graph[i].add(new Edge(i, n-1, -val[i]));
+            }
+        }
+        Arrays.fill(val, INF);
+
+        for (int cur = 0 ; cur <= n+5 ; cur++) {
+            boolean upd = false;
+            for (int i = 0 ; i < n ; i++) {
+                for (Edge e : graph[i]) {
+                    int j = e.to;
+                    if (val[i] + e.cost < val[j]) {
+                        upd = true;
+                        val[j] = val[i] + e.cost;
+                    }
+                }
+            }
+            if (!upd) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    static class Edge {
+        int fr;
+        int to;
+        double cost;
+
+        Edge(int a, int b, double c) {
+            fr = a;
+            to = b;
+            cost = c;
+        }
     }
 
     static class InputReader {

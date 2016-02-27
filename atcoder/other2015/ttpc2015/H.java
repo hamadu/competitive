@@ -1,75 +1,111 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.ttpc2015;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.List;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/09/20.
  */
-public class F {
+public class H {
+    private static final double INF = 1145141919810893.0f;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
+        long[][] p = new long[n+1][2];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            for (int j = 0; j < 2 ; j++) {
+                p[i][j] = in.nextInt();
+            }
         }
+
+        List<int[]> lines = new ArrayList<>();
+        double best = INF;
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+            for (int j = i+1; j < n ; j++) {
+                for (int k = j+1; k < n; k++) {
+                    long c1 = ccw(p, i, j, n);
+                    long c2 = ccw(p, j, k, n);
+                    long c3 = ccw(p, k, i, n);
+                    if (c1 == c2 && c2 == c3 && c1 != 0) {
+                        best = Math.min(best, area(p, i, j, k));
+                    }
+                }
+                if (between(p, i, j, n)) {
+                    lines.add(new int[]{i, j});
+                }
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
+        for (int[] ij : lines) {
+            int i = ij[0];
+            int j = ij[1];
+            double left = INF;
+            double right = INF;
+            for (int k = 0 ; k < n ; k++) {
+                if (k != i && k != j) {
+                    long cr = cross(p, i, j, k);
+                    if (cr > 0) {
+                        left = Math.min(left, area(p, i, j, k));
+                    } else if (cr < 0) {
+                        right = Math.min(right, area(p, i, j, k));
+                    }
 
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+                }
+            }
+            best = Math.min(best, left+right);
+        }
+        if (best >= INF) {
+            out.println("Impossible");
+        } else {
+            out.println("Possible");
+            out.println(String.format("%.9f", best));
+        }
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+    private static double area(long[][] p, int i, int j, int k) {
+        return Math.abs(cross(p, i, j, k)) * 0.5;
+    }
+
+    private static boolean between(long[][] p, int i, int j, int k) {
+        if (cross(p, i, j, k) != 0) {
+            return false;
         }
-        return line.substring(1);
+
+        // v1:i-k
+        // v2:j-k
+        long[] v1 = { p[k][0] - p[i][0], p[k][1] - p[i][1] };
+        long[] v2 = { p[k][0] - p[j][0], p[k][1] - p[j][1] };
+        if (v1[0] != 0) {
+            return v1[0] / Math.abs(v1[0]) != v2[0] / Math.abs(v2[0]);
+        }
+        return v1[1] / Math.abs(v1[1]) != v2[1] / Math.abs(v2[1]);
+    }
+
+    private static long cross(long[][] p, int i, int j, int k) {
+        // v1:i-j
+        // v2:i-k
+        long[] v1 = { p[j][0] - p[i][0], p[j][1] - p[i][1] };
+        long[] v2 = { p[k][0] - p[i][0], p[k][1] - p[i][1] };
+
+        return v1[0]*v2[1] - v1[1]*v2[0];
+    }
+
+
+    private static long ccw(long[][] p, int i, int j, int k) {
+        long cr = cross(p, i, j, k);
+        if (cr == 0) {
+            return 0;
+        }
+        return cr / Math.abs(cr);
     }
 
     static class InputReader {

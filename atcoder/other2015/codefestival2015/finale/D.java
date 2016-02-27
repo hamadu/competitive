@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package atcoder.other2015.codefestival2015.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,69 +7,101 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/01/30.
+ * Created by hama_du on 15/11/14.
  */
-public class F {
+public class D {
+
+    static int MAXL = 100100;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
+
+        int[] imos = new int[MAXL];
+        int[][] ranges = new int[n][2];
         for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
+            int s = in.nextInt();
+            int t = in.nextInt();
+            imos[s]++;
+            imos[t]--;
+
+            ranges[i][0] = s;
+            ranges[i][1] = t;
         }
+        for (int i = 0; i < MAXL-1 ; i++) {
+            imos[i+1] += imos[i];
+        }
+        SegmentTree tree = new SegmentTree(imos);
+
+        int min = Integer.MAX_VALUE;
         for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
+            int left = tree.max(0, ranges[i][0]);
+            int right = tree.max(ranges[i][1], imos.length-1);
+            int center = tree.max(ranges[i][0], ranges[i][1]);
+            min = Math.min(min, Math.max(Math.max(left, right), center-1));
         }
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
-            }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
-        }
-
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
+        out.println(min);
         out.flush();
     }
 
-    private static String buildIntegers(int fromA, int toA) {
-        StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+
+
+    public static class SegmentTree {
+        int N;
+        int M;
+        int[] seg;
+
+        public SegmentTree(int[] data) {
+            N = Integer.highestOneBit(data.length-1)<<2;
+            M = (N >> 1) - 1;
+
+            seg = new int[N];
+            Arrays.fill(seg, Integer.MAX_VALUE);
+            for (int i = 0 ; i < data.length ; i++) {
+                seg[M+i] = data[i];
+            }
+            for (int i = M-1 ; i >= 0 ; i--) {
+                seg[i] = compute(i);
+            }
         }
-        return line.substring(1);
+
+        public void update(int idx, int value) {
+            seg[M+idx] = value;
+            int i = M+idx;
+            while (true) {
+                i = (i-1) >> 1;
+                seg[i] = compute(i);
+                if (i == 0) {
+                    break;
+                }
+            }
+        }
+
+        public int compute(int i) {
+            return Math.max(seg[i*2+1], seg[i*2+2]);
+        }
+
+        public int max(int l, int r) {
+            return max(l, r, 0, 0, M+1);
+        }
+
+        public int max(int l, int r, int idx, int fr, int to) {
+            if (to <= l || r <= fr) {
+                return Integer.MIN_VALUE;
+            }
+            if (l <= fr && to <= r) {
+                return seg[idx];
+            }
+
+            int med = (fr+to) / 2;
+            int ret = Integer.MIN_VALUE;
+            ret = Math.max(ret, max(l, r, idx * 2+1, fr, med));
+            ret = Math.max(ret, max(l, r, idx * 2+2, med, to));
+            return ret;
+        }
+
     }
 
     static class InputReader {
