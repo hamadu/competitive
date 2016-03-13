@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class C {
-    private static final long MOD = 1_000_000_007;
+    private static final long MOD = 1000000007;
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
@@ -15,63 +15,53 @@ public class C {
         int k = in.nextInt();
         char[] c = in.next().toCharArray();
 
-        int offset = 300;
-        int m = 605;
-        long[][][] dp = new long[2][m][m];
-
-
-        dp[0][offset][offset] = 1;
-        for (int i = 0 ; i < n ; i++) {
-            int fr = i % 2;
-            int tr = 1 - fr;
-            for (int cur = 0 ; cur < m ; cur++) {
-                for (int min = 0 ; min < m ; min++) {
-                    if (dp[fr][cur][min] == 0) {
+        int[][][] dp = new int[n+1][k+1][k+1];
+        dp[0][0][0] = 1;
+        for (int i = 0; i < n ; i++) {
+            for (int r0 = 0; r0 <= k ; r0++) {
+                for (int r1 = 0; r1 <= k ; r1++) {
+                    if (dp[i][r0][r1] == 0) {
                         continue;
                     }
-                    if (c[i] == '?' || c[i] == '0') {
-                        int tc = cur-1;
-                        int tm = Math.min(tc, min);
-                        if (tc-tm > k ) {
-                            debug(i,tc,tm,'-');
-                        } else {
-                            dp[tr][tc][tm] += dp[fr][cur][min];
-                            dp[tr][tc][tm] -= (dp[tr][tc][tm] >= MOD) ? MOD : 0;
-                        }
-                    }
-                    if (c[i] == '?' || c[i] == '1') {
-                        int tc = cur+1;
-                        int tm = Math.min(tc, min);
-                        if (tc-tm > k ) {
-                            debug(i,'+');
-                        } else {
-                            dp[tr][tc][tm] += dp[fr][cur][min];
-                            dp[tr][tc][tm] -= (dp[tr][tc][tm] >= MOD) ? MOD : 0;
+                    int base = dp[i][r0][r1];
+                    for (char ch : "01".toCharArray()) {
+                        if (c[i] == '?' || c[i] == ch) {
+                            int tr0 = r0;
+                            int tr1 = r1;
+                            if (ch == '0') {
+                                tr0++;
+                                tr1 = Math.max(0, tr1-1);
+                            } else {
+                                tr1++;
+                                tr0 = Math.max(0, tr0-1);
+                            }
+                            if (tr0 <= k && tr1 <= k) {
+                                dp[i+1][tr0][tr1] += base;
+                                dp[i+1][tr0][tr1] -= (dp[i+1][tr0][tr1] >= MOD) ? MOD : 0;
+                            }
                         }
                     }
                 }
             }
-            for (int j = 0 ; j < dp[0].length ; j++) {
-                Arrays.fill(dp[fr][j], 0);
-            }
         }
+
 
         long sum = 0;
-        for (int cur = 0 ; cur < m ; cur++) {
-            for (int min = 0 ; min < m; min++) {
-                sum += dp[n%2][cur][min];
-                sum %= MOD;
+        for (int i = 0; i <= k; i++) {
+            for (int j = 0; j <= k ; j++) {
+                sum += dp[n][i][j];
             }
         }
-        out.println(sum);
+        out.println(sum % MOD);
         out.flush();
     }
-
-
+    
     static void debug(Object... o) {
         System.err.println(Arrays.deepToString(o));
     }
 }
+
+
 
 
 
