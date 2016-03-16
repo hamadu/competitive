@@ -1,55 +1,103 @@
-package atcoder.arc043;
+package codeforces.cr344.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
- * Created by hama_du on 15/09/19.
+ * Created by hama_du on 2016/03/10.
  */
-public class B {
-    private static final long MOD = 1000000007;
-
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] d = new int[n];
+        int m = in.nextInt();
+        int[] a = new int[n];
         for (int i = 0; i < n ; i++) {
-            d[i] = in.nextInt();
+            a[i] = in.nextInt();
         }
-        long[] deg = new long[100010];
-        for (int i = 0; i < n ; i++) {
-            deg[d[i]]++;
+        int[][] queries = new int[m][3];
+        for (int i = 0; i < m ; i++) {
+            queries[i][0] = i;
+            queries[i][1] = in.nextInt();
+            queries[i][2] = in.nextInt();
         }
-        long[][] dp = new long[4][100010];
-        for (int i = 0; i < deg.length ; i++) {
-            dp[0][i] = deg[i];
-        }
+        Arrays.sort(queries, (o1, o2) -> o2[2] - o1[2]);
 
-        for (int i = 1 ; i <= 3 ; i++) {
-            long[] imos = new long[deg.length+1];
-            for (int j = 0; j < deg.length ; j++) {
-                if (j >= 1) {
-                    imos[j] = imos[j-1];
+        List<int[]> operations = new ArrayList<>();
+        {
+            int head = -1;
+            for (int i = 0; i < m; ) {
+                int mi = -1;
+                int fi = i;
+                int ti = i;
+                while (ti < m && queries[fi][2] == queries[ti][2]) {
+                    if (head < queries[ti][0]) {
+                        head = queries[ti][0];
+                        mi = ti;
+                    }
+                    ti++;
                 }
-                imos[j] += dp[i-1][j];
-                imos[j] -= (imos[j+1] >= MOD) ? MOD : 0;
-            }
-            for (int j = 0 ; j < deg.length ; j++) {
-                int need = j / 2;
-                dp[i][j] = imos[need] * deg[j] % MOD;
+                if (mi != -1) {
+                    operations.add(queries[mi]);
+                }
+                i = ti;
             }
         }
 
-        long sum = 0;
-        for (int i = 0; i < deg.length ; i++) {
-            sum += dp[3][i];
+        boolean first = true;
+        int[] answer = new int[n];
+
+        int head = n;
+        int lastOrder = 1;
+        int trackHead = 0;
+        int trackTail = n;
+        for (int[] op : operations) {
+            int toHead = op[2];
+            if (first) {
+                head = op[2];
+                trackTail = op[2]-1;
+                Arrays.sort(a, 0, op[2]);
+                for (int i = op[2] ; i < n ; i++) {
+                    answer[i] = a[i];
+                }
+                first = false;
+            }
+            while (--head >= toHead) {
+                answer[head] = a[trackTail];
+                if (trackHead < trackTail) {
+                    trackTail--;
+                } else {
+                    trackTail++;
+                }
+            }
+            head = toHead;
+            if (lastOrder != op[1]) {
+                int tmp = trackHead;
+                trackHead = trackTail;
+                trackTail = tmp;
+            }
+            lastOrder = op[1];
         }
-        out.println(sum % MOD);
+        while (--head >= 0) {
+            answer[head] = a[trackTail];
+            if (trackHead < trackTail) {
+                trackTail--;
+            } else {
+                trackTail++;
+            }
+        }
+
+        for (int i = 0 ; i < n ; i++) {
+            if (i >= 1) {
+                out.print(' ');
+            }
+            out.print(answer[i]);
+        }
+        out.println();
         out.flush();
     }
 

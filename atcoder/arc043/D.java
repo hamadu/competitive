@@ -9,47 +9,73 @@ import java.util.InputMismatchException;
 /**
  * Created by hama_du on 15/09/19.
  */
-public class B {
-    private static final long MOD = 1000000007;
-
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] d = new int[n];
-        for (int i = 0; i < n ; i++) {
-            d[i] = in.nextInt();
+        int m = in.nextInt();
+        int[] p = new int[m];
+        for (int i = 0; i < m ; i++) {
+            p[i] = in.nextInt();
         }
-        long[] deg = new long[100010];
-        for (int i = 0; i < n ; i++) {
-            deg[d[i]]++;
-        }
-        long[][] dp = new long[4][100010];
-        for (int i = 0; i < deg.length ; i++) {
-            dp[0][i] = deg[i];
-        }
+        Arrays.sort(p);
 
-        for (int i = 1 ; i <= 3 ; i++) {
-            long[] imos = new long[deg.length+1];
-            for (int j = 0; j < deg.length ; j++) {
-                if (j >= 1) {
-                    imos[j] = imos[j-1];
+        int[] sub = new int[m+1];
+        for (int i = 0 ; i < m ; i++) {
+            sub[i+1] = sub[i] + p[m-i-1];
+        }
+        int sum = sub[m];
+
+        long[][] dp = new long[2][sum+1];
+        Arrays.fill(dp[0], -1);
+        dp[0][0] = 0;
+        for (int i = 0; i < m ; i++) {
+            int fi = i & 1;
+            int ti = 1 - fi;
+            Arrays.fill(dp[ti], -1);
+            for (int j = 0; j <= sum ; j++) {
+                if (dp[fi][j] == -1) {
+                    continue;
                 }
-                imos[j] += dp[i-1][j];
-                imos[j] -= (imos[j+1] >= MOD) ? MOD : 0;
-            }
-            for (int j = 0 ; j < deg.length ; j++) {
-                int need = j / 2;
-                dp[i][j] = imos[need] * deg[j] % MOD;
+                long base = dp[fi][j];
+                int add = p[m-1-i];
+                long leftPeople = j;
+                long rightPeople = sub[i] - j;
+
+                if (i == m-1 && n == m) {
+                    // left and right
+                    int tj = j+add;
+                    dp[ti][tj] = Math.max(dp[ti][tj], base + leftPeople * (rightPeople+add) + (leftPeople+add) * rightPeople);
+                } else {
+                    // add left
+                    {
+                        int tj = j+add;
+                        dp[ti][tj] = Math.max(dp[ti][tj], base+leftPeople * (sum - leftPeople));
+                    }
+
+                    // add right
+                    {
+                        int tj = j;
+                        dp[ti][tj] = Math.max(dp[ti][tj], base + (sum - rightPeople) * rightPeople);
+                    }
+                }
             }
         }
 
-        long sum = 0;
-        for (int i = 0; i < deg.length ; i++) {
-            sum += dp[3][i];
+        long max = 0;
+        long leftEdge = Math.max(0, n - m + 1);
+        if (n == m) {
+            leftEdge = 0;
         }
-        out.println(sum % MOD);
+        for (long left = 0 ; left <= sum ; left++) {
+            long right = sum - left;
+            if (dp[m&1][(int)left] >= 0) {
+                max = Math.max(max, dp[m&1][(int)left] + leftEdge * left * right);
+            }
+        }
+        out.println(max);
         out.flush();
     }
 

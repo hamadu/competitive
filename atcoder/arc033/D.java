@@ -1,4 +1,4 @@
-package atcoder.arc043;
+package atcoder.arc033;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/09/19.
+ * Created by hama_du on 2016/03/14.
  */
-public class B {
+public class D {
     private static final long MOD = 1000000007;
 
     public static void main(String[] args) {
@@ -17,41 +17,71 @@ public class B {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] d = new int[n];
-        for (int i = 0; i < n ; i++) {
-            d[i] = in.nextInt();
+        long[] a = new long[n+1];
+        for (int i = 0 ; i < n+1 ; i++) {
+            a[i] = in.nextInt();
         }
-        long[] deg = new long[100010];
-        for (int i = 0; i < n ; i++) {
-            deg[d[i]]++;
-        }
-        long[][] dp = new long[4][100010];
-        for (int i = 0; i < deg.length ; i++) {
-            dp[0][i] = deg[i];
-        }
-
-        for (int i = 1 ; i <= 3 ; i++) {
-            long[] imos = new long[deg.length+1];
-            for (int j = 0; j < deg.length ; j++) {
-                if (j >= 1) {
-                    imos[j] = imos[j-1];
-                }
-                imos[j] += dp[i-1][j];
-                imos[j] -= (imos[j+1] >= MOD) ? MOD : 0;
-            }
-            for (int j = 0 ; j < deg.length ; j++) {
-                int need = j / 2;
-                dp[i][j] = imos[need] * deg[j] % MOD;
-            }
-        }
-
-        long sum = 0;
-        for (int i = 0; i < deg.length ; i++) {
-            sum += dp[3][i];
-        }
-        out.println(sum % MOD);
+        long T = in.nextInt();
+        out.println(solve(a, T));
         out.flush();
     }
+
+    private static long solve(long[] a, long t) {
+        if (t < a.length) {
+            return a[(int)t];
+        }
+        int n = a.length-1;
+        long[] fact = new long[n+1];
+        fact[0] = 1;
+        for (int i = 1 ; i <= n ; i++) {
+            fact[i] = (fact[i-1] * i) % MOD;
+        }
+
+        long[] qii = new long[n+1];
+        for (int i = 0 ; i <= n ; i++) {
+            qii[i] = fact[i] * fact[n-i] % MOD;
+            if ((n - i) % 2 == 1) {
+                qii[i] = (MOD - qii[i]) % MOD;
+            }
+        }
+        long[] c = new long[n+1];
+        for (int i = 0; i <= n ; i++) {
+            c[i] = a[i] * inv(qii[i]) % MOD;
+        }
+
+        long[] qt = new long[n+1];
+        qt[0] = 1;
+        for (int i = 1 ; i <= n ; i++) {
+            qt[0] *= (t - i + MOD) % MOD;
+            qt[0] %= MOD;
+        }
+        for (int i = 1 ; i <= n ; i++) {
+            qt[i] = qt[i-1] * inv(t-i) % MOD * (t-(i-1)+MOD) % MOD;
+        }
+
+        long ans = 0;
+        for (int i = 0; i <= n ; i++) {
+            ans += c[i] * qt[i] % MOD;
+        }
+        return ans % MOD;
+    }
+
+    static long pow(long a, long x) {
+        long res = 1;
+        while (x > 0) {
+            if (x % 2 != 0) {
+            res = (res * a) % MOD;
+            }
+            a = (a * a) % MOD;
+            x /= 2;
+        }
+        return res;
+    }
+
+    static long inv(long a) {
+        return pow(a, MOD - 2) % MOD;
+    }
+
 
     static class InputReader {
         private InputStream stream;

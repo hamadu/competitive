@@ -38,7 +38,7 @@ public class C {
             out.println(-1);
         } else {
             long want = x / 2;
-            int[] arr = build(want, n);
+            int[] arr = revert(want, q);
             int[] ans = new int[n];
             for (int i = 0; i < n ; i++) {
                 ans[i] = a[arr[i]];
@@ -52,9 +52,44 @@ public class C {
         out.flush();
     }
 
-    private static int[] build(long d, int n) {
-        int[] ret = new int[n];
-        return ret;
+    private static int[] revert(long want, int[] q) {
+        int n = q.length;
+        BIT bit = new BIT(n+10);
+        long[] cnt = new long[n];
+        for (int i = 0; i < n; i++) {
+            int nu = q[i]+1;
+            cnt[q[i]] = bit.range(nu+1, n);
+            bit.add(nu, 1);
+        }
+        int[] base = new int[n];
+        for (int pos = 0; pos < n; pos++) {
+            if (want >= cnt[pos]) {
+                want -= cnt[pos];
+                base[pos] = pos;
+            } else {
+                int th = pos;
+                for (int i = 0; i < n; i++) {
+                    if (q[i] >= th) {
+                        base[pos] = q[i];
+                        pos++;
+                    }
+                }
+                for (int i = 0 ; i < n ; i++) {
+                    if (base[i] == th) {
+                        while (want >= 1) {
+                            int tmp = base[i];
+                            base[i] = base[i-1];
+                            base[i-1] = tmp;
+                            i--;
+                            want--;
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        return base;
     }
 
     private static long inverseCount(int[] q) {

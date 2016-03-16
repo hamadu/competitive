@@ -1,55 +1,24 @@
-package atcoder.arc043;
+package codeforces.cr344.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.List;
 
 /**
- * Created by hama_du on 15/09/19.
+ * Created by hama_du on 2016/03/10.
  */
-public class B {
-    private static final long MOD = 1000000007;
-
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] d = new int[n];
-        for (int i = 0; i < n ; i++) {
-            d[i] = in.nextInt();
-        }
-        long[] deg = new long[100010];
-        for (int i = 0; i < n ; i++) {
-            deg[d[i]]++;
-        }
-        long[][] dp = new long[4][100010];
-        for (int i = 0; i < deg.length ; i++) {
-            dp[0][i] = deg[i];
-        }
-
-        for (int i = 1 ; i <= 3 ; i++) {
-            long[] imos = new long[deg.length+1];
-            for (int j = 0; j < deg.length ; j++) {
-                if (j >= 1) {
-                    imos[j] = imos[j-1];
-                }
-                imos[j] += dp[i-1][j];
-                imos[j] -= (imos[j+1] >= MOD) ? MOD : 0;
-            }
-            for (int j = 0 ; j < deg.length ; j++) {
-                int need = j / 2;
-                dp[i][j] = imos[need] * deg[j] % MOD;
-            }
-        }
-
-        long sum = 0;
-        for (int i = 0; i < deg.length ; i++) {
-            sum += dp[3][i];
-        }
-        out.println(sum % MOD);
+        int m = in.nextInt();
+        out.println();
         out.flush();
     }
 

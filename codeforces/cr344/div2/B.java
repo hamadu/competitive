@@ -1,4 +1,4 @@
-package atcoder.arc043;
+package codeforces.cr344.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,49 +7,45 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 15/09/19.
+ * Created by hama_du on 2016/03/10.
  */
 public class B {
-    private static final long MOD = 1000000007;
-
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] d = new int[n];
-        for (int i = 0; i < n ; i++) {
-            d[i] = in.nextInt();
-        }
-        long[] deg = new long[100010];
-        for (int i = 0; i < n ; i++) {
-            deg[d[i]]++;
-        }
-        long[][] dp = new long[4][100010];
-        for (int i = 0; i < deg.length ; i++) {
-            dp[0][i] = deg[i];
+        int m = in.nextInt();
+        int k = in.nextInt();
+        int[][] rows = new int[n][2];
+        int[][] cols = new int[m][2];
+        for (int i = 1 ; i <= k ; i++) {
+            int type = in.nextInt();
+            int idx = in.nextInt()-1;
+            int col = in.nextInt();
+            if (type == 1) {
+                rows[idx][0] = col;
+                rows[idx][1] = i;
+            } else {
+                cols[idx][0] = col;
+                cols[idx][1] = i;
+            }
         }
 
-        for (int i = 1 ; i <= 3 ; i++) {
-            long[] imos = new long[deg.length+1];
-            for (int j = 0; j < deg.length ; j++) {
+
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < m ; j++) {
                 if (j >= 1) {
-                    imos[j] = imos[j-1];
+                    out.print(' ');
                 }
-                imos[j] += dp[i-1][j];
-                imos[j] -= (imos[j+1] >= MOD) ? MOD : 0;
+                if (rows[i][1] > cols[j][1]) {
+                    out.print(rows[i][0]);
+                } else {
+                    out.print(cols[j][0]);
+                }
             }
-            for (int j = 0 ; j < deg.length ; j++) {
-                int need = j / 2;
-                dp[i][j] = imos[need] * deg[j] % MOD;
-            }
+            out.println();
         }
-
-        long sum = 0;
-        for (int i = 0; i < deg.length ; i++) {
-            sum += dp[3][i];
-        }
-        out.println(sum % MOD);
         out.flush();
     }
 
