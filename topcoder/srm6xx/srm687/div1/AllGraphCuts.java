@@ -16,6 +16,8 @@ public class AllGraphCuts {
             return new int[]{-1};
         }
 
+        debug(edges);
+
         int[] ans = new int[edges.size() / 3];
         int n = graph.length;
         for (int ei = 0; ei < edges.size() ; ei += 3) {
@@ -47,12 +49,22 @@ public class AllGraphCuts {
 
         // sanity check 2
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                for (int k = 0; k < n ; k++) {
+            for (int j = i+1; j < n ; j++) {
+                for (int k = j+1; k < n ; k++) {
                     if (i == j || j == k || k == i) {
                         continue;
                     }
-                    if (Math.min(graph[i][k], graph[k][j]) < graph[i][j]) {
+                    int no = 0;
+                    if (Math.min(graph[i][k], graph[k][j]) != graph[i][j]) {
+                        no++;
+                    }
+                    if (Math.min(graph[i][j], graph[j][k]) != graph[i][k]) {
+                        no++;
+                    }
+                    if (Math.min(graph[j][i], graph[i][k]) != graph[j][k]) {
+                        no++;
+                    }
+                    if (no == 3) {
                         return null;
                     }
                 }
@@ -77,18 +89,18 @@ public class AllGraphCuts {
         response.add(minI);
         response.add(minJ);
         response.add(min);
-        for (int i = 0; i < n ; i++) {
-            if (i != minI && i != minJ) {
-                if (graph[i][minI] > min && graph[i][minJ] > min) {
+        for (int x = 0; x < n ; x++) {
+            if (x != minI && x != minJ) {
+                if (graph[x][minI] > min && graph[x][minJ] > min) {
                     return null;
-                } else if (graph[i][minJ] > min) {
-                    response.add(i);
+                } else if (graph[x][minJ] > min) {
+                    response.add(x);
                     response.add(minJ);
-                    response.add(graph[i][minJ]);
+                    response.add(graph[x][minJ]);
                 } else {
-                    response.add(i);
+                    response.add(x);
                     response.add(minI);
-                    response.add(graph[i][minI]);
+                    response.add(graph[x][minI]);
                 }
             }
         }
