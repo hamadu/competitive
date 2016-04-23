@@ -3,9 +3,7 @@ package atcoder.other2015.codefestival2015.finale;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.InputMismatchException;
+import java.util.*;
 
 /**
  * Created by hama_du on 15/11/14.
@@ -22,35 +20,84 @@ public class H {
             niku[i][0] = in.nextInt();
             niku[i][1] = niku[i][0] + in.nextInt();
         }
-        Arrays.sort(niku, new Comparator<int[]>() {
-            @Override
-            public int compare(int[] o1, int[] o2) {
-                return o1[1] - o2[1];
-            }
-        });
-
-
-        int[] dp = new int[n];
-        for (int i = 0; i < n ; i++) {
-            dp[i] = niku[i][1] - niku[i][0];
+        List<int[]> edges = new ArrayList<>();
+        for (int i = 0 ; i < n ; i++) {
+            edges.add(new int[]{niku[i][0], niku[i][1], 0});
         }
-
-        int left = 0;
-        for (int i = 0; i < n ; i++) {
-            while (left < i && niku[left][1] <= niku[i][0]) {
-                dp[i] = Math.max(dp[i], dp[left] + niku[i][1] - niku[i][0]);
-                left++;
-            }
-
-
-
+        for (int i = 1 ; i <= m ; i++) {
+            edges.add(new int[]{i-1, i, 1});
+            edges.add(new int[]{i, i-1, 1});
         }
+        int[][][] graph = buildWeightedDirectedGraph(m+1, edges);
+        long[] dp = new Dijkstra(graph).doit(0);
 
-
-
-
-
+        out.println(m - dp[m]);
         out.flush();
+    }
+
+    static class Dijkstra {
+        int n;
+        int[][][] graph;
+
+        class State implements Comparable<State> {
+            int now;
+            long time;
+
+            State(int n, long t) {
+                now = n;
+                time = t;
+            }
+
+            @Override
+            public int compareTo(State o) {
+                return Long.compare(time, o.time);
+            }
+        }
+
+        public Dijkstra(int[][][] graph) {
+            this.n = graph.length;
+            this.graph = graph;
+        }
+
+        long[] doit(int from) {
+            long[] dp = new long[n];
+            Arrays.fill(dp, Long.MAX_VALUE / 10);
+            Queue<State> q = new PriorityQueue<>();
+            q.add(new State(from, 0));
+            dp[0] = 0;
+            while (q.size() >= 1) {
+                State st = q.poll();
+                for (int[] e : graph[st.now]) {
+                    long time = st.time + e[1];
+                    if (dp[e[0]] > time) {
+                        dp[e[0]] = time;
+                        q.add(new State(e[0], time));
+                    }
+                }
+            }
+            return dp;
+        }
+    }
+
+    static int[][][] buildWeightedDirectedGraph(int n, List<int[]> edges) {
+        int m = edges.size();
+        int[][][] graph = new int[n][][];
+        int[] deg = new int[n];
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges.get(i)[0];
+            deg[a]++;
+        }
+        for (int i = 0 ; i < n ; i++) {
+            graph[i] = new int[deg[i]][2];
+        }
+        for (int i = 0 ; i < m ; i++) {
+            int a = edges.get(i)[0];
+            int b = edges.get(i)[1];
+            int w = edges.get(i)[2];
+            graph[a][--deg[a]][0] = b;
+            graph[a][deg[a]][1] = w;
+        }
+        return graph;
     }
 
 
