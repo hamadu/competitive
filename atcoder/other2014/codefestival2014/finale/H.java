@@ -1,83 +1,45 @@
-package atcoder.utpc2014;
+package atcoder.other2014.codefestival2014.finale;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
-import java.util.Scanner;
+import java.util.*;
 
-public class G {
-    static final long MOD = 1000000007;
-
-    static int[] decode(int p) {
-        int[] x = new int[11];
-        for (int d = 0 ; d < x.length ; d++) {
-            x[d] = p % 3;
-            p /= 3;
-        }
-        return x;
-    }
-
-    static int encode(int[] d) {
-        int num = 0;
-        for (int i = d.length-1 ; i >= 0 ; i--) {
-            num *= 3;
-            num += d[i];
-        }
-        return num;
-    }
+/**
+ * Created by hama_du on 4/29/16.
+ */
+public class H {
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
+        InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int X = in.nextInt();
-        int P = in.nextInt();
-        int[] a = new int[n];
-        for (int i = 0; i < n ; i++) {
-            String l = in.next();
-            if (l.equals("?")) {
-                a[i] = -1;
-            } else {
-                a[i] = Integer.valueOf(l);
-            }
-        }
+        int k = in.nextInt();
+        char[] s = in.nextToken().toCharArray();
 
+        int[] room = new int[k];
+        List<int[]> range = new ArrayList<>();
 
-        long[][] dp = new long[n+1][200000];
-        dp[0][1] = 1;
+        int zeroPos = 0;
+        int onePos = 0;
+        int max = 0;
         for (int i = 0 ; i < n ; i++) {
-            for (int p = 0 ; p < dp[0].length ; p++) {
-                if (dp[i][p] == 0) {
-                    continue;
-                }
-                int[] now = decode(p);
-                for (int d = 0 ; d <= P ; d++) {
-                    if (a[i] == -1 || a[i] == d) {
-                        int[] to = now.clone();
-                        for (int f = 0 ; f+d < to.length ; f++) {
-                            to[f+d] += now[f];
-                            to[f+d] = Math.min(to[f+d], 2);
-                        }
-                        int tp = encode(to);
-                        dp[i+1][tp] += dp[i][p];
-                        dp[i+1][tp] %= MOD;
-                    }
-                }
+            int j = i;
+            while (j < n && s[j] == s[i]) {
+                j++;
+            }
+            if (s[i] == '0') {
+
             }
         }
 
-        long ans = 0;
-        for (int p = 0 ; p < dp[0].length ; p++) {
-            int[] ptn = decode(p);
-            if (ptn[X] == 1) {
-                ans += dp[n][p];
-                ans %= MOD;
-            }
-        }
-        out.println(ans);
+
+
+
+
+
+
         out.flush();
     }
 
@@ -107,6 +69,31 @@ public class G {
             return buf[curChar++];
         }
 
+        public char nextChar() {
+            int c = next();
+            while (isSpaceChar(c))
+                c = next();
+            if ('a' <= c && c <= 'z') {
+                return (char) c;
+            }
+            if ('A' <= c && c <= 'Z') {
+                return (char) c;
+            }
+            throw new InputMismatchException();
+        }
+
+        public String nextToken() {
+            int c = next();
+            while (isSpaceChar(c))
+                c = next();
+            StringBuilder res = new StringBuilder();
+            do {
+                res.append((char) c);
+                c = next();
+            } while (!isSpaceChar(c));
+            return res.toString();
+        }
+
         public int nextInt() {
             int c = next();
             while (isSpaceChar(c))
@@ -121,7 +108,7 @@ public class G {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -141,7 +128,7 @@ public class G {
                 if (c < '0' || c > '9')
                     throw new InputMismatchException();
                 res *= 10;
-                res += c - '0';
+                res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
             return res * sgn;
@@ -160,6 +147,3 @@ public class G {
         System.err.println(Arrays.deepToString(o));
     }
 }
-
-
-

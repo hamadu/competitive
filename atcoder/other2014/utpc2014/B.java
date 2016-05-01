@@ -1,4 +1,4 @@
-package atcoder.utpc2014;
+package atcoder.other2014.utpc2014;
 
 import java.io.IOException;
 import java.io.InputStream;
