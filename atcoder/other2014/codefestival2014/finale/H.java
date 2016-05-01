@@ -18,28 +18,42 @@ public class H {
         int k = in.nextInt();
         char[] s = in.nextToken().toCharArray();
 
-        int[] room = new int[k];
-        List<int[]> range = new ArrayList<>();
-
-        int zeroPos = 0;
-        int onePos = 0;
+        int[] floor = new int[n];
         int max = 0;
-        for (int i = 0 ; i < n ; i++) {
-            int j = i;
-            while (j < n && s[j] == s[i]) {
-                j++;
-            }
-            if (s[i] == '0') {
-
+        int min = 0;
+        int[] heights = new int[n+1];
+        heights[0] = k;
+        for (int i = 0; i < n ; i++) {
+            // [!] make sure that heights[min] >= 1 and heights[max] >= 1 in here
+            if (s[i] == '1') {
+                floor[i] = max + 1;
+                heights[max] -= 1;
+                heights[max+1] += 1;
+                max++;
+            } else {
+                floor[i] = min + 1;
+                heights[min] -= 1;
+                heights[min+1] += 1;
+                max = Math.max(max, min+1);
+                if (heights[min] == 0) {
+                    min++;
+                }
             }
         }
 
-
-
-
-
-
-
+        double[] ans = new double[n];
+        double[] prob = new double[n+1];
+        for (int i = n-1 ; i >= 0 ; i--) {
+            int h = floor[i];
+            ans[i] = h + prob[h];
+            heights[h]--;
+            heights[h-1]++;
+            prob[h-1] = ((prob[h] + 1) + (heights[h-1] - 1) * prob[h-1]) / heights[h-1];
+            // debug(prob[h]+1,prob[h-1],"to",1,(heights[h-1] - 1),"adding",h-1);
+        }
+        for (int i = 0; i < n ; i++) {
+            out.println(ans[i]);
+        }
         out.flush();
     }
 
