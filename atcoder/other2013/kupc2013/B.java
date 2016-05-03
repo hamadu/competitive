@@ -1,4 +1,4 @@
-package atcoder.kupc2013;
+package atcoder.other2013.kupc2013;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,67 +9,69 @@ import java.util.InputMismatchException;
 /**
  * Created by hama_du on 15/08/01.
  */
-public class E {
-    private static final int INF = 1145141919;
-
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int[] a = new int[6];
-        for (int i = 0; i < 6 ; i++) {
-            a[i] = in.nextInt();
-        }
-        int s = in.nextInt()-1;
-        int g = in.nextInt()-1;
-        int[] v = new int[n];
-        for (int i = 0; i < n; i++) {
-            v[i] = in.nextInt();
-        }
-
-        int[] dist = new int[n];
-        Arrays.fill(dist, INF);
-        dist[g] = 0;
-        for (int cur = 0; cur < 2*n; cur++) {
-            for (int i = 0; i < n ; i++) {
-                int min = INF;
-                for (int k = 0; k < 6 ; k++) {
-                    for (int d = -1 ; d <= 1; d += 2) {
-                        int to = (i + a[k] * d);
-                        if (0 <= to && to < n) {
-                            to += v[to];
-                            min = Math.min(min, dist[to]+1);
-                        }
-                    }
-                }
-                if (min < dist[i]) {
-                    dist[i] = min;
-                }
+        int x = in.nextInt();
+        int m = in.nextInt();
+        int[][] q = new int[m][3];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < 3 ; j++) {
+                q[i][j] = in.nextInt();
             }
+            q[i][0]--;
         }
 
-        int now = s;
-        while (true) {
-            int dice = in.nextInt() - 1;
-            int prev = now - a[dice];
-            int next = now + a[dice];
-            if (0 <= prev && prev < n && dist[prev + v[prev]] < dist[now]) {
-                out.println(-1);
-                now = prev + v[prev];
-            } else if (0 <= next && next < n && dist[next + v[next]] < dist[now]) {
-                out.println(1);
-                now = next + v[next];
-            } else {
-                out.println(0);
+        dfs(0, x, new int[n], q);
+
+        if (best == null) {
+            out.println(-1);
+        } else {
+            for (int i = 0; i < best.length ; i++) {
+                if (i >= 1) {
+                    out.print(' ');
+                }
+                out.print(best[i]);
             }
-            out.flush();
-            if (now == g) {
-                break;
+            out.println();
+        }
+
+        out.flush();
+    }
+
+    private static void dfs(int idx, int max, int[] lions, int[][] q) {
+        if (idx == lions.length) {
+            int[] imos = new int[lions.length+1];
+            for (int i = 0; i < lions.length ; i++) {
+                imos[i+1] = imos[i] + lions[i];
             }
+            boolean isOK = true;
+            for (int[] qi : q) {
+                if (imos[qi[1]] - imos[qi[0]] != qi[2]) {
+                    isOK = false;
+                    break;
+                }
+            }
+            if (isOK) {
+                if (bestSum < imos[lions.length]) {
+                    bestSum = imos[lions.length];
+                    best = lions.clone();
+                }
+            }
+
+            return;
+        }
+        for (int i = 0; i <= max; i++) {
+            lions[idx] = i;
+            dfs(idx+1, max, lions, q);
         }
     }
 
+    static int bestSum = -1;
+    static int[] best;
 
     static class InputReader {
         private InputStream stream;

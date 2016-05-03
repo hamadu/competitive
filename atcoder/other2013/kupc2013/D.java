@@ -1,118 +1,40 @@
-package atcoder.kupc2013;
+package atcoder.other2013.kupc2013;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
+import java.util.Stack;
 
 /**
  * Created by hama_du on 15/08/01.
  */
-@SuppressWarnings("unchecked")
-public class F {
+public class D {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int s = in.nextInt()-1;
-        int[][] lr = new int[n][3];
+        int[] a = new int[n];
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 2 ; j++) {
-                lr[i][j] = in.nextInt();
-            }
-            lr[i][2] = i;
+            a[i] = in.nextInt();
         }
-        Arrays.sort(lr, new Comparator<int[]>() {
-            @Override
-            public int compare(int[] o1, int[] o2) {
-                return o1[1] - o2[1];
-            }
-        });
-
-        int[][] graph = new int[n][n];
+        int cnt = 0;
+        Stack<Integer> stk = new Stack<>();
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                graph[i][j] = in.nextInt();
+            while (stk.size() >= 1 && stk.peek() > a[i]) {
+                stk.pop();
+            }
+            if (stk.size() == 0 || stk.peek() < a[i]) {
+                stk.push(a[i]);
+                cnt++;
             }
         }
-        for (int k = 0; k < n ; k++) {
-            for (int i = 0; i < n ; i++) {
-                for (int j = 0; j < n ; j++) {
-                    graph[i][j] = Math.min(graph[i][j], graph[i][k] + graph[k][j]);
-                }
-            }
-        }
-
-        int[] ptoi = new int[n];
-        int[] itop = new int[n];
-        for (int i = 0; i < n ; i++) {
-            ptoi[i] = lr[i][2];
-            itop[lr[i][2]] = i;
-        }
-
-        Map<Long,Long>[] dp = new Map[n];
-        for (int i = 0; i < n ; i++) {
-            dp[i] = new HashMap<Long,Long>();
-        }
-        for (int i = 0; i < n ; i++) {
-            int tp = ptoi[i];
-            dp[i].put(graph[s][tp] * 1L, 0L);
-        }
-        long best = 0;
-        for (int i = 0; i < n ; i++) {
-            int pid = ptoi[i];
-            for (long time : dp[i].keySet()) {
-                long done = dp[i].get(time);
-                best = Math.max(best, done);
-
-                // case1
-                {
-                    long tv = done + Math.max(0, lr[i][1] - Math.max(lr[i][0], time));
-                    best = Math.max(best, tv);
-                    for (int j = i+1 ; j < n; j++) {
-                        int pid2 = ptoi[j];
-                        long tt = Math.max(lr[i][1], time) + graph[pid][pid2];
-                        if (lr[j][1] <= tt) {
-                            continue;
-                        }
-                        tt = Math.max(tt, lr[j][0]);
-                        if (!dp[j].containsKey(tt)) {
-                            dp[j].put(tt, tv);
-                        } else {
-                            if (dp[j].get(tt) < tv) {
-                                dp[j].put(tt, tv);
-                            }
-                        }
-                    }
-                }
-
-                // case2
-                {
-                    for (int j = i+1 ; j < n ; j++) {
-                        int pid2 = ptoi[j];
-                        long leaveTime = lr[j][0] - graph[pid][pid2];
-                        if (leaveTime >= time) {
-                            long tt = lr[j][0];
-                            long tv = done + Math.max(0, Math.min(leaveTime, lr[i][1]) - Math.max(lr[i][0], time));
-                            best = Math.max(best, tv);
-
-                            if (!dp[j].containsKey(tt)) {
-                                dp[j].put(tt, tv);
-                            } else {
-                                if (dp[j].get(tt) < tv) {
-                                    dp[j].put(tt, tv);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        out.println(best);
+        out.println(cnt);
         out.flush();
     }
+
 
     static class InputReader {
         private InputStream stream;

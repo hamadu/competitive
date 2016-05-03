@@ -1,4 +1,4 @@
-package atcoder.kupc2013;
+package atcoder.other2013.kupc2013;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,32 +9,60 @@ import java.util.InputMismatchException;
 /**
  * Created by hama_du on 15/08/01.
  */
-public class G {
+public class H {
     public static void main(String[] args) {
+        // debug(count(30, 11));
+
+        InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = 40;
-        int star = 5;
-        boolean[][] graph = new boolean[n][n];
-        for (int i = 0; i < star ; i++) {
-            for (int j = i+1; j < star; j++) {
-                graph[i][j] = graph[j][i] = true;
-            }
-        }
-        for (int i = 0; i < star; i++) {
-            for (int j = star; j < n ; j++) {
-                graph[i][j] = graph[j][i] = true;
-            }
+        int c = in.nextInt();
+        while (--c >= 0) {
+            long n = in.nextLong();
+            long k = in.nextLong();
+            out.println(solve(n, k));
         }
 
-        out.println(graph.length);
-        for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                out.print(graph[i][j] ? 'Y' : 'N');
-            }
-            out.println();
-        }
         out.flush();
+    }
+
+    private static long solve(long n, long k) {
+        if (k > (n+1)/2) {
+            return -1;
+        }
+
+        long min = 0;
+        long max = n+1;
+        while (max - min > 1) {
+            long med = (max + min) / 2;
+            if (count(n, med) >= k) {
+                max = med;
+            } else {
+                min = med;
+            }
+        }
+        return max;
+    }
+
+    private static long count(long n, long med) {
+        long ret = 0;
+        long max = n - (1 - n % 2);
+        long x = med;
+
+        while (max >= 1) {
+            long min = max / 3 + 1;
+            if (min % 2 == 0) {
+                min++;
+            }
+            if (x >= min) {
+                long add = (Math.min(max, x) - min) / 2 + 1;
+                // debug(min,x,max,add);
+                ret += add;
+            }
+            max /= 3;
+            x >>= 1;
+        }
+        return ret;
     }
 
     static class InputReader {

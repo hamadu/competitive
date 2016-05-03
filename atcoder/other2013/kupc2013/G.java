@@ -1,40 +1,41 @@
-package atcoder.kupc2013;
+package atcoder.other2013.kupc2013;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
-import java.util.Stack;
 
 /**
  * Created by hama_du on 15/08/01.
  */
-public class D {
+public class G {
     public static void main(String[] args) {
-        InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int[] a = new int[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
-        int cnt = 0;
-        Stack<Integer> stk = new Stack<>();
-        for (int i = 0; i < n ; i++) {
-            while (stk.size() >= 1 && stk.peek() > a[i]) {
-                stk.pop();
-            }
-            if (stk.size() == 0 || stk.peek() < a[i]) {
-                stk.push(a[i]);
-                cnt++;
+        int n = 40;
+        int star = 5;
+        boolean[][] graph = new boolean[n][n];
+        for (int i = 0; i < star ; i++) {
+            for (int j = i+1; j < star; j++) {
+                graph[i][j] = graph[j][i] = true;
             }
         }
-        out.println(cnt);
+        for (int i = 0; i < star; i++) {
+            for (int j = star; j < n ; j++) {
+                graph[i][j] = graph[j][i] = true;
+            }
+        }
+
+        out.println(graph.length);
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < n ; j++) {
+                out.print(graph[i][j] ? 'Y' : 'N');
+            }
+            out.println();
+        }
         out.flush();
     }
-
 
     static class InputReader {
         private InputStream stream;

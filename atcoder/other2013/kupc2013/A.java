@@ -1,4 +1,4 @@
-package atcoder.kupc2013;
+package atcoder.other2013.kupc2013;
 
 import java.io.IOException;
 import java.io.InputStream;
