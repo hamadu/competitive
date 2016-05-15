@@ -32,29 +32,43 @@ public class DivFree {
             prec[i] %= MOD;
         }
 
-        long[][][] dp = new long[2][2][n];
+        long[][][] dp = new long[2][2][n+50];
         dp[0][0][0] = 1;
+        dp[0][1][0] = k;
         for (int pos = 0; pos < n-1 ; pos++) {
             for (int parity = 0; parity <= 1 ; parity++) {
                 for (int flg = 0; flg <= 1 ; flg++) {
-                    if (dp[parity][flg][pos] >= 1) {
-                        long base = dp[parity][flg][pos];
-                        // ?
-                        // ?
+                    long base = dp[parity][flg][pos];
+                    if (base == 0) {
+                        continue;
+                    }
+                    if (flg == 0) {
+                        // flg = 0 : must use NG ptn
+                        for (int l = 1 ; l <= 20 ; l++) {
+                            int tpar = (parity + l) % 2;
+                            dp[tpar][1][pos+l] += base * prec[l] % MOD;
+                            dp[tpar][1][pos+l] %= MOD;
+                        }
+                    } else {
+                        // flg = 1 : must use free ptn
+                        dp[parity][0][pos+1] += base;
+                        dp[parity][0][pos+1] %= MOD;
+
+                        dp[parity][1][pos+1] += base * k % MOD;
+                        dp[parity][1][pos+1] %= MOD;
                     }
                 }
             }
         }
 
-
-
-
-        return -1;
+        long ans = (dp[0][1][n-1]) - (dp[1][1][n-1]) + MOD * 10;
+        return (int)(ans % MOD);
     }
 
     public static void main(String[] args) {
         DivFree f= new DivFree();
-        debug(f.dfcount(50000, 50000));
+        debug(f.dfcount(2, 2)); // 3
+        debug(f.dfcount(42, 23)); // 301026516
     }
 
     public static void debug(Object... o) {
