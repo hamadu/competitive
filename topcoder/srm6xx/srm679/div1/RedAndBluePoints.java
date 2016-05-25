@@ -1,160 +1,190 @@
 package topcoder.srm6xx.srm679.div1;
 
-import java.awt.*;
-import java.awt.geom.Line2D;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by hama_du on 2016/01/20.
  */
 public class RedAndBluePoints {
+    static class Point implements Comparable<Point> {
+        long x;
+        long y;
+
+        public Point(long _x, long _y) {
+            x = _x;
+            y = _y;
+        }
+
+        long dot(Point o) {
+            return x * o.x + y * o.y;
+        }
+
+        long cross(Point o) {
+            return x * o.y - y * o.x;
+        }
+
+        Point to(Point o) {
+            return new Point(o.x - x, o.y - y);
+        }
+
+        static boolean innerTriangle(Point x1, Point x2, Point x3, Point y) {
+            Point v1 = x1.to(x2);
+            Point v2 = x2.to(x3);
+            Point v3 = x3.to(x1);
+            Point u1 = x1.to(y);
+            Point u2 = x2.to(y);
+            Point u3 = x3.to(y);
+            boolean c1 = v1.cross(u1) > 0;
+            boolean c2 = v2.cross(u2) > 0;
+            boolean c3 = v3.cross(u3) > 0;
+            return c1 == c2 && c2 == c3;
+        }
+
+        @Override
+        public int compareTo(Point o) {
+            return x == o.x ? Long.compare(y, o.y) : Long.compare(x, o.x);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%d,%d)", x, y);
+        }
+    }
+
+
     public int find(int[] blueX, int[] blueY, int[] redX, int[] redY) {
+        int bn = blueX.length;
+        List<Point> blues = new ArrayList<>();
+        for (int i = 0; i < bn ; i++) {
+            blues.add(new Point(blueX[i], blueY[i]));
+        }
+        Collections.sort(blues);
 
+        int rn = redX.length;
+        List<Point> reds = new ArrayList<>();
+        for (int i = 0; i < rn ; i++) {
+            reds.add(new Point(redX[i], redY[i]));
+        }
+        Collections.sort(reds);
 
-        n = blueX.length;
-        int m = redX.length;
-        int[][] bl = new int[n][2];
-        int[][] rl = new int[m][2];
-        for (int i = 0; i < n ; i++) {
-            bl[i][0] = blueX[i];
-            bl[i][1] = blueY[i];
-        }
-        for (int i = 0; i < m ; i++) {
-            rl[i][0] = redX[i];
-            rl[i][1] = redY[i];
-        }
-        for (int i = 0 ; i < n ; i++) {
-            int k = (int)(Math.random() * n);
-            int t1 = bl[k][0];
-            int t2 = bl[k][1];
-            bl[k][0] = bl[i][0];
-            bl[k][1] = bl[i][1];
-            bl[i][0] = t1;
-            bl[i][1] = t2;
-        }
-        for (int i = 0 ; i < m ; i++) {
-            int k = (int)(Math.random() * m);
-            int t1 = rl[k][0];
-            int t2 = rl[k][1];
-            rl[k][0] = rl[i][0];
-            rl[k][1] = rl[i][1];
-            rl[i][0] = t1;
-            rl[i][1] = t2;
-        }
-
-        ng = new long[n][n];
-        for (int i = 0 ; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                for (int k = 0; k < n ; k++) {
+        int[][][] inner = new int[bn][bn][bn];
+        for (int i = 0; i < bn ; i++) {
+            for (int j = 0; j < bn ; j++) {
+                for (int k = 0; k < bn ; k++) {
                     if (i == j || j == k || i == k) {
                         continue;
                     }
-                    if (containRed(bl[i], bl[j], bl[k], rl)) {
-                        ng[i][j] |= 1L<<k;
-                    }
-                }
-            }
-        }
-        cont = new long[n][n][n];
-        for (int i = 0 ; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                for (int k = 0; k < n ; k++) {
-                    if (i == j || j == k || i == k) {
-                        continue;
-                    }
-                    cont[i][j][k] |= 1L<<i;
-                    cont[i][j][k] |= 1L<<j;
-                    cont[i][j][k] |= 1L<<k;
-                    for (int l = 0 ; l < n ; l++) {
-                        if (containPoint(bl[i], bl[j], bl[k], bl[l])) {
-                            cont[i][j][k] |= 1L<<l;
+                    int cnt = 0;
+                    Point bi = blues.get(i);
+                    Point bj = blues.get(j);
+                    Point bk = blues.get(k);
+                    for (int l = 0; l < bn ; l++) {
+                        if (l == i || j == l || k == l) {
+                            continue;
                         }
+                        cnt += Point.innerTriangle(bi, bj, bk, blues.get(l)) ? 1 : 0;
                     }
+                    for (int l = 0; l < rn ; l++) {
+                        cnt -= Point.innerTriangle(bi, bj, bk, reds.get(l)) ? 114514 : 0;
+                    }
+                    inner[i][j][k] = cnt;
                 }
             }
         }
 
 
-        blue = bl;
-        red = rl;
-        max = 0;
-        dfs(0, 0);
+        // [first][last][head]
+        int[][][] upper = new int[bn][bn][bn];
+        int[][][] downer = new int[bn][bn][bn];
+        for (int i = 0; i < bn ; i++) {
+            for (int j = 0; j < bn ; j++) {
+                Arrays.fill(upper[i][j], -1);
+                Arrays.fill(downer[i][j], -1);
+            }
+        }
+        for (int i = 0; i < bn ; i++) {
+            upper[i][i][i] = 1;
+            downer[i][i][i] = 1;
+        }
+        for (int i = 0; i < bn ; i++) {
+            for (int j = 0; j < bn ; j++) {
+                for (int k = 0; k < bn ; k++) {
+                    if (upper[i][j][k] < 0) {
+                        continue;
+                    }
+                    int base = upper[i][j][k];
+                    Point last = blues.get(j);
+                    Point head = blues.get(k);
+                    Point v1 = last.to(head);
+                    for (int l = 0 ; l < bn ; l++) {
+                        Point next = blues.get(l);
+                        Point v2 = head.to(next);
+                        if (head.x > next.x || (head.x == next.x && head.y >= next.y)) {
+                            continue;
+                        }
+                        if (i != k && v1.y * v2.x <= v2.y * v1.x) {
+                            continue;
+                        }
+                        int to = base + inner[i][k][l] + 1;
+                        upper[i][k][l] = Math.max(upper[i][k][l], to);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < bn ; i++) {
+            for (int j = 0; j < bn ; j++) {
+                for (int k = 0; k < bn ; k++) {
+                    if (downer[i][j][k] < 0) {
+                        continue;
+                    }
+                    int base = downer[i][j][k];
+                    Point last = blues.get(j);
+                    Point head = blues.get(k);
+                    Point v1 = last.to(head);
+                    for (int l = 0 ; l < bn ; l++) {
+                        Point next = blues.get(l);
+                        Point v2 = head.to(next);
+                        if (head.x > next.x || (head.x == next.x && head.y >= next.y)) {
+                            continue;
+                        }
+                        if (i != k && v1.y * v2.x >= v2.y * v1.x) {
+                            continue;
+                        }
+                        int to = base + inner[i][k][l] + 1;
+                        downer[i][k][l] = Math.max(downer[i][k][l], to);
+                    }
+                }
+            }
+        }
 
+        int max = Math.min(2, bn);
+        for (int i = 0; i < bn ; i++) {
+            for (int j = 0; j < bn ; j++) {
+                for (int k = 0; k < bn ; k++) {
+                    for (int l = 0; l < bn ; l++) {
+                        max = Math.max(max, upper[i][k][j] + downer[i][l][j] - 2);
+                    }
+                }
+            }
+        }
         return max;
-    }
-
-    long[][] ng;
-    int[][] blue;
-    int[][] red;
-    long[][][] cont;
-    int max;
-    int n;
-    static long nodes = 0;
-
-    private void dfs(int head, long ptn) {
-        int k = Long.bitCount(ptn);
-        if (k > max) {
-            max = k;
-        }
-        if (head == n) {
-            return;
-        }
-        int done = Long.bitCount(ptn & (~((1L<<head)-1)));
-        int foe = (n - head) - done;
-        if (k + foe < max) {
-            return;
-        }
-        nodes++;
-
-        if ((ptn & (1L<<head)) == 0) {
-            for (int f = 0 ; f < n ; f++) {
-                if ((ptn & (1L<<f)) >= 1) {
-                    if ((ng[f][head] & ptn) >= 1) {
-                        return;
-                    }
-                }
-            }
-            long tptn = ptn|(1L<<head);
-            for (int f = 0 ; f < n ; f++) {
-                for (int g = f+1 ; g < n ; g++) {
-                    if ((ptn & (1L<<f)) >= 1 && (ptn & (1L<<g)) >= 1) {
-                        tptn |= cont[f][g][head];
-                    }
-                }
-            }
-            dfs(head+1, tptn);
-        }
-        dfs(head+1, ptn);
-    }
-
-    private boolean containRed(int[] b1, int[] b2, int[] b3, int[][] rl) {
-        for (int i = 0 ; i < rl.length ; i++) {
-            if (containPoint(b1, b2, b3, rl[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean containPoint(int[] b1, int[] b2, int[] b3, int[] red) {
-        Polygon p = new Polygon(new int[]{b1[0], b2[0], b3[0]}, new int[]{b1[1], b2[1], b3[1]}, 3);
-        return p.contains(red[0], red[1]);
-    }
-
-    public static void main(String[] args) {
-        long f = System.currentTimeMillis();
-        RedAndBluePoints solution = new RedAndBluePoints();
-        debug(solution.find(
-            new int[]{0,10,0,10},
-            new int[]{0,0,10,10},
-            new int[]{1,3},
-            new int[]{1,7}
-        ));
-        debug(System.currentTimeMillis()-f,"ms");
-        debug(nodes);
     }
 
     static void debug(Object... o) {
         System.err.println(Arrays.deepToString(o));
+    }
+
+
+    public static void main(String[] args) {
+        RedAndBluePoints points = new RedAndBluePoints();
+        debug(points.find(
+                new int[]{0,0,10,10},
+                new int[]{0,10,0,10},
+                new int[]{12},
+                new int[]{12}
+        ));
     }
 }
