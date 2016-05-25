@@ -1,4 +1,4 @@
-package topcoder.srm6xx.srm669;
+package topcoder.srm6xx.srm669.div1;
 
 import java.util.Arrays;
 
