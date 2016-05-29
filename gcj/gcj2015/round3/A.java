@@ -35,90 +35,65 @@ public class A {
         out.flush();
     }
 
-    private static int solve(int[][] g, int[] s, int d) {
-        graph = g;
-        salary = s;
-        D = d;
-
-        int n = g.length;
-        minmax = new int[n][2];
-        for (int i = 0 ; i < n ; i++) {
-            minmax[i][0] = -1;
-            minmax[i][1] = -1;
-        }
-
-        dfs(0, -1, salary[0], salary[0]);
-
-        Map<Integer,List<Integer>> eventL = new HashMap<>();
-        Map<Integer,List<Integer>> eventR = new HashMap<>();
-        for (int i = 0 ; i < n ; i++) {
-            if (minmax[i][0] == -1) {
-                continue;
-            }
-            if (!eventL.containsKey(minmax[i][0])) {
-                eventL.put(minmax[i][0], new ArrayList<>());
-            }
-            if (!eventR.containsKey(minmax[i][1])) {
-                eventR.put(minmax[i][1], new ArrayList<>());
-            }
-            eventL.get(minmax[i][0]).add(i);
-            eventR.get(minmax[i][1]).add(i);
-        }
-
-        boolean[] end = new boolean[n+1];
-
-        int ans = 0;
-        Set<Integer> have = new HashSet<>();
-        for (int r = 0 ; r < 3000000 ; r++) {
-            if (eventR.containsKey(r)) {
-                for (int l : eventR.get(r)) {
-                    if (!end[l]) {
-                        have.add(l);
-                    }
-                }
-            }
-            if (r - D - 1 >= 0 && eventL.containsKey(r-D-1)) {
-                for (int l : eventL.get(r-D-1)) {
-                    have.remove(l);
-                    end[l] = true;
-                }
-            }
-            if (r-D-1 <= s[0] && s[0] <= r) {
-                ans = Math.max(ans, have.size());
-            }
-        }
-        return ans;
-    }
-
-    static int n;
-    static int D;
-    static int[] salary;
-    static int[][] graph;
-    static int[][] minmax;
-
-    private static void dfs(int now, int par, int min, int max) {
-        if (max - min > D) {
-            return;
-        }
-        minmax[now][0] = min;
-        minmax[now][1] = max;
-
-        for (int to : graph[now]) {
-            if (to != par) {
-                dfs(to, now, Math.min(min, salary[to]), Math.max(max, salary[to]));
-            }
-        }
-    }
-
-
     private static int[] make(int[] ints, int n) {
         int[] ret = new int[n];
         ret[0] = ints[0];
-        for (int i = 1 ; i < n ; i++) {
-            long v = (1L * ret[i-1] * ints[1] + ints[2]) % ints[3];
-            ret[i] = (int)v;
+        for (int i = 1; i < n; i++) {
+            long v = (1L*ret[i-1]*ints[1]+ints[2])%ints[3];
+            ret[i] = (int) v;
         }
         return ret;
+    }
+
+    private static int solve(int[][] g, int[] s, int d) {
+        int n = g.length;
+        salary = s;
+        graph = g;
+        range = new int[n][2];
+        for (int i = 0; i < n ; i++) {
+            range[i][0] = 1;
+            range[i][1] = 0;
+        }
+
+        dfs(0, -1, d);
+
+        int[] imos = new int[2000010];
+        for (int i = 0; i < n ; i++) {
+            if (range[i][0] > range[i][1]) {
+                continue;
+            }
+            int fr = Math.max(range[i][0], 0);
+            int to = range[i][1];
+            imos[fr]++;
+            imos[to+1]--;
+        }
+        int val = 0;
+        int max = 0;
+        for (int i = 0; i < imos.length ; i++) {
+            val += imos[i];
+            max = Math.max(max, val);
+        }
+        return max;
+    }
+
+    static int[] salary;
+    static int[][] graph;
+    static int[][] range;
+
+    static void dfs(int now, int par, int D) {
+        if (par == -1) {
+            range[now][0] = salary[now];
+            range[now][1] = salary[now] + D;
+        } else {
+            range[now][0] = Math.max(salary[now], range[par][0]);
+            range[now][1] = Math.min(salary[now] + D, range[par][1]);
+        }
+        for (int to : graph[now]) {
+            if (to == par) {
+                continue;
+            }
+            dfs(to, now, D);
+        }
     }
 
     static int[][] buildGraph(int n, int m, int[][] _edges) {
