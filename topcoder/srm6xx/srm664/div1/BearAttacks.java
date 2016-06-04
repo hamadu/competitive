@@ -1,50 +1,88 @@
 package topcoder.srm6xx.srm664.div1;
 
+import java.util.Arrays;
+
 /**
- * Created by hama_du on 2016/05/28.
+ * Created by hama_du on 15/08/03.
  */
 public class BearAttacks {
     public int expectedValue(int N, int R0, int A, int B, int M, int LOW, int HIGH) {
-        graph = build(N, R0, A, B, M, LOW, HIGH);
-        return 0;
+        int[][] edges = buildEdges(N, R0, A, B, M, LOW, HIGH);
+        int n = edges.length+1;
+
+        long[] inv = new long[n];
+        for (int i = 0; i < n; i++) {
+            inv[i] = inv(i+1);
+        }
+
+        long[] dp = new long[n];
+        for (int i = 0; i < n ; i++) {
+            dp[i] = inv[i];
+        }
+        for (int i = n-1; i >= 1; i--) {
+            int par = edges[i-1][1];
+            dp[par] = (dp[par] + dp[i] * inv[par] % MOD) % MOD;
+        }
+        
+        long ans = 0;
+
+        // self
+        for (int i = 0; i < n ; i++) {
+            ans += inv[i];
+            ans %= MOD;
+        }
+
+        // subtree
+        for (int i = n-1 ; i >= 1 ; i--) {
+            int par = edges[i-1][1];
+            ans += dp[i] * inv[par] % MOD;
+            ans += (dp[i] * (MOD + dp[par] - dp[i] * inv[par] % MOD)) % MOD;
+            ans %= MOD;
+        }
+
+        // N!
+        for (int i = 1; i <= n; i++) {
+            ans *= i;
+            ans %= MOD;
+        }
+
+        return (int)ans;
     }
 
-    int[][] graph;
+    static final long MOD = 1000000007;
 
-    public int[][] build(int N, long R0, long A, long B, long M, long LOW, long HIGH) {
-        long r = R0;
-        long BILLION = (long)1e9;
-        int[][] edges = new int[N-1][2];
-        for (int i = 0; i < N-1 ; i++) {
-            r = (r * A + B) % M;
-            long min = i * LOW / BILLION;
-            long max = i * HIGH / BILLION;
-            edges[i][0] = i;
-            edges[i][1] = (int)(min + r % (max - min + 1));
+    static long pow(long a, long x) {
+        long res = 1;
+        while (x > 0) {
+            if (x % 2 != 0) {
+                res = (res * a) % MOD;
+            }
+            a = (a * a) % MOD;
+            x /= 2;
         }
-        return buildGraph(N, edges);
+        return res;
     }
 
-    static int[][] buildGraph(int n, int[][] edges) {
-        int m = edges.length;
-        int[][] graph = new int[n][];
-        int[] deg = new int[n];
-        for (int i = 0 ; i < m ; i++) {
-            int a = edges[i][0];
-            int b = edges[i][1];
-            deg[a]++;
-            deg[b]++;
-        }
-        for (int i = 0 ; i < n ; i++) {
-            graph[i] = new int[deg[i]];
-        }
-        for (int i = 0 ; i < m ; i++) {
-            int a = edges[i][0];
-            int b = edges[i][1];
-            graph[a][--deg[a]] = b;
-            graph[b][--deg[b]] = a;
-        }
-        return graph;
+    static long inv(long a) {
+        return pow(a, MOD - 2) % MOD;
     }
 
+    static int[][] buildEdges(int n, int r0, long a, long b, long m, long low, long high) {
+        long r = r0;
+        int BILLION = 1000000000;
+
+        int[][] edges = new int[n-1][2];
+        for (int i = 0; i < n-1 ; i++) {
+            r = (a * r + b) % m;
+            long min = (i*low) / BILLION;
+            long max = (i*high) / BILLION;
+            edges[i][0] = i+1;
+            edges[i][1] = (int)(min + r % (max-min+1));
+        }
+        return edges;
+    }
+
+    public static void debug(Object... o) {
+        System.err.println(Arrays.deepToString(o));
+    }
 }
