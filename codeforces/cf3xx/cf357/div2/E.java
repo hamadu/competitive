@@ -13,9 +13,9 @@ public class E {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long x0 = in.nextInt();
-        long y0 = in.nextInt();
-        long A = in.nextLong() * in.nextLong();
+        long x0 = in.nextLong();
+        long y0 = in.nextLong();
+        double A = in.nextLong() * in.nextLong();
 
         int n = in.nextInt();
         long[][] shadow = new long[n][3];
@@ -30,24 +30,23 @@ public class E {
         boolean all = false;
         List<double[]> range = new ArrayList<>();
         for (int i = 0; i < n ; i++) {
-            long dist = d2(shadow[i][0], shadow[i][1]);
-            long rrLong = (A+shadow[i][2])*(A+shadow[i][2]);
-            long rrShort = (A-shadow[i][2])*(A-shadow[i][2]);
             if (d2(shadow[i][0], shadow[i][1]) <= shadow[i][2]*shadow[i][2]) {
                 all = true;
                 break;
             }
 
+            long dist = d2(shadow[i][0], shadow[i][1]);
+            double rrLong = (A+shadow[i][2])*(A+shadow[i][2]);
             if (dist >= rrLong) {
                 continue;
             }
             double rad = Math.atan2(shadow[i][1], shadow[i][0]) + Math.PI;
             double R = Math.sqrt(dist);
-            double r = shadow[i][2];
-            double subRad = Math.asin(r / R);
-            range.add(new double[]{ rad-subRad, rad+subRad });
-
-            if (dist > rrShort) {
+            if (dist <= A*A) {
+                double r = shadow[i][2];
+                double subRad = Math.asin(r/R);
+                range.add(new double[]{rad-subRad, rad+subRad});
+            } else  {
                 double a = (A*A - shadow[i][2]*shadow[i][2] + dist) / (2 * R);
                 double h = Math.sqrt(A*A - a*a);
                 double p2x = a * shadow[i][0] / R;
@@ -95,15 +94,6 @@ public class E {
             }
             Collections.sort(zero2PI, (r0, r1) -> Double.compare(r0[0], r1[0]));
 
-//            for (double[] d : range) {
-//                debug(d);
-//            }
-//            debug("==");
-//
-//            for (double[] d : zero2PI) {
-//                debug(d);
-//            }
-
             double wrongSum = 0;
             double covered = 0;
             for (double[] to : zero2PI) {
@@ -112,7 +102,7 @@ public class E {
 
             }
             wrongSum += Math.max(0, Math.PI*2-covered);
-            out.println((Math.PI*2-wrongSum)/(Math.PI*2));
+            out.println(String.format("%.9f", (Math.PI*2-wrongSum)/(Math.PI*2)));
         }
 
         out.flush();
