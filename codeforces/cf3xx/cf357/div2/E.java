@@ -108,6 +108,27 @@ public class E {
         out.flush();
     }
 
+    // c[0]: x, c[1]: y, c[2]: r
+    static double[][] intersectionOfCircle(double[] c1, double[] c2) {
+        double R2 = (c1[0]-c2[0])*(c1[0]-c2[0])+(c1[1]-c2[1])*(c1[1]-c2[1]);
+        double R = Math.sqrt(R2);
+        double a = (c1[2]*c1[2] - c2[2]*c2[2] + R2) / (2 * R);
+        double h = Math.sqrt(c1[2]*c1[2] - a*a);
+        double dx = c2[0]-c1[0];
+        double dy = c2[1]-c1[1];
+        double p2x = a * dx / R;
+        double p2y = a * dy / R;
+        double p3x = p2x + h * dy / R;
+        double p3y = p2y - h * dx / R;
+        double p4x = p2x - h * dy / R;
+        double p4y = p2y + h * dx / R;
+
+        return new double[][]{
+            { p3x+dx, p3y+dy },
+            { p4x+dx, p4y+dy }
+        };
+    }
+
     static long d2(long x, long y) {
         return x*x+y*y;
     }
