@@ -1,4 +1,4 @@
-# 発想できなかった全集
+# 発想できなかった全集(主に、知ってたのに頭に浮かんでこなかったものを列挙)
 
 ### [MultiplicationTable3](https://community.topcoder.com/stat?c=problem_statement&pm=14244&rd=16710)
 *2, +1 しながら数を作るという発想が出てこなかった(2016/05/10)
@@ -15,3 +15,5 @@
 ちなみに正しい方法はある地点からはじめてK種類のビデオが選ばれるときの確率を求める、というもの
 
 
+### [Codeforces #364 Div1B Connecting Universities](http://codeforces.com/contest/700/problem/B)
+複数の点対の移動距離 → 使う辺のコストの合計 という発想が出てこなかった
