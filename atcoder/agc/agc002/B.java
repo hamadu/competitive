@@ -1,115 +1,47 @@
-package atcoder.other2016.tenka1.quala;
+package atcoder.agc.agc002;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/07/30.
+ * Created by hama_du on 2016/07/31.
  */
-public class E {
-
-
-
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-
         int n = in.nextInt();
         int m = in.nextInt();
-        int[][] ab = new int[m][2];
+        boolean[] possibleRed = new boolean[n+1];
+        int[] cnt = new int[n+1];
+        Arrays.fill(cnt, 1);
+        possibleRed[1] = true;
         for (int i = 0; i < m ; i++) {
-            for (int j = 0; j < 2 ; j++) {
-                 ab[i][j] = in.nextInt();
+            int a = in.nextInt();
+            int b = in.nextInt();
+            if (possibleRed[a]) {
+                possibleRed[b] = true;
+            }
+            cnt[b]++;
+            cnt[a]--;
+            if (cnt[a] == 0) {
+                possibleRed[a] = false;
             }
         }
 
-        int limit = Math.min(2000000, n * 40000);
-        UnionFind uf = new UnionFind(limit);
-        for (int i = 0; i < m ; i++) {
-            for (int k = -1000 ; k < limit ; k++) {
-                int a = ab[i][0] + k * n;
-                int b = ab[i][1] + (k + 1) * n;
-                if (a >= limit || b >= limit) {
-                    break;
-                }
-                if (a >= 0 && b >= 0) {
-                    uf.unite(a, b);
-                }
+        int ans = 0;
+        for (int i = 1 ; i <= n; i++) {
+            if (possibleRed[i]) {
+                ans++;
             }
         }
-
-        int cnt = 0;
-        boolean[] mo = new boolean[limit];
-        for (int i = limit/2; i < limit*3/4 ; i++) {
-            int x = uf.find(i);
-            if (!mo[x]) {
-                mo[x] = true;
-                cnt++;
-            }
-        }
-        if (cnt <= 1000) {
-            out.println(cnt);
-        } else {
-            out.println(-1);
-        }
+        out.println(ans);
         out.flush();
     }
-
-    static class UnionFind {
-        int[] rank;
-        int[] parent;
-        int[] cnt;
-
-        public UnionFind(int n) {
-            rank = new int[n];
-            parent = new int[n];
-            cnt = new int[n];
-            for (int i = 0; i < n ; i++) {
-                parent[i] = i;
-                cnt[i] = 1;
-            }
-        }
-
-        public int find(int a) {
-            if (parent[a] == a) {
-                return a;
-            }
-            parent[a] = find(parent[a]);
-            return parent[a];
-        }
-
-        public void unite(int a, int b) {
-            a = find(a);
-            b = find(b);
-            if (a == b) {
-                return;
-            }
-            if (rank[a] < rank[b]) {
-                parent[a] = b;
-                cnt[b] += cnt[a];
-                cnt[a] = cnt[b];
-            } else {
-                parent[b] = a;
-                cnt[a] += cnt[b];
-                cnt[b] = cnt[a];
-                if (rank[a] == rank[b]) {
-                    rank[a]++;
-                }
-            }
-        }
-
-        public int groupCount(int a) {
-            return cnt[find(a)];
-        }
-
-        private boolean issame(int a, int b) {
-            return find(a) == find(b);
-        }
-    }
-
 
     static class InputReader {
         private InputStream stream;
