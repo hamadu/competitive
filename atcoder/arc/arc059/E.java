@@ -1,4 +1,4 @@
-package csacademy.round009;
+package atcoder.arc.arc059;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,102 +7,73 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/08/11.
+ * Created by hama_du on 2016/08/13.
  */
-public class F {
-    private static final long MOD = (long)1e9+7;
-
+public class E {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
+        n = in.nextInt();
+        int c = in.nextInt();
+        a = in.nextInts(n);
+        b = in.nextInts(n);
 
-        char[] c = in.nextToken().toCharArray();
-        d = new int[n];
-        for (int i = 0; i < n ; i++) {
-            d[i] = c[i]-'0';
-        }
 
-        imos = new int[10][n+1];
-        for (int i = 0; i < 10 ; i++) {
-            for (int j = 0; j < n; j++) {
-                imos[i][j+1] += imos[i][j];
-                if (d[j] == i) {
-                    imos[i][j+1] += 1;
-                }
+        powTbl = new long[c+1][402];
+        for (int ci = 0 ; ci <= c ; ci++) {
+            for (int k = 0 ; k <= 400 ; k++) {
+                powTbl[ci][k+1] = powTbl[ci][k] + pow(k, ci);
+                powTbl[ci][k+1] %= MOD;
             }
         }
 
-        memo = new long[2][n+1][n+1][11][11];
-        for (int f = 0; f <= 1; f++) {
-            for (int i = 0; i <= n; i++) {
-                for (int j = 0; j <= n; j++) {
-                    for (int k = 0; k < 11; k++) {
-                        Arrays.fill(memo[f][i][j][k],-1);
-                    }
-                }
-            }
+        memo = new long[n+1][c+1];
+        for (int i = 0; i <= n; i++) {
+            Arrays.fill(memo[i], -1);
         }
 
-        long ans = dfs(1, 0, n-1, 10, 10);
-
-        out.println(ans % MOD);
+        out.println(dfs(0, c));
         out.flush();
     }
 
-    static int[][] imos;
-    static long[][][][][] memo;
+    static final int MOD = 1000000007;
 
-    static long dfs(int flg, int l, int r, int last1, int last2) {
-        if (memo[flg][l][r][last1][last2] != -1) {
-            return memo[flg][l][r][last1][last2];
-        }
-        long ret = 0;
-        if (l > r) {
-        } else {
-            if (flg == 1) {
-                // match one
-                if (last2 == 10) {
-                    ret += imos[0][r+1]-imos[0][l];
-                } else if (last2*2 < 10) {
-                    ret += imos[last2*2][r+1]-imos[last2*2][l];
-                }
-
-                // match two
-                {
-                    int want = ((last1==10) ? 0 : last1)+((last2==10) ? 0 : last2);
-                    if (want <= 9) {
-                        int cnt = imos[want][r+1]-imos[want][l];
-                        ret += cnt*(cnt-1)/2;
-                        ret %= MOD;
-                    }
-                }
+    static long pow(long a, long x) {
+        long res = 1;
+        while (x > 0) {
+            if (x % 2 != 0) {
+            res = (res * a) % MOD;
             }
-
-            // dont use l
-            ret += dfs(0, l+1, r, last1, last2);
-
-            // use l
-            int tr = r;
-            while (l < tr) {
-                if (d[l] == d[tr]) {
-                    if (last2 == 10) {
-                        ret += dfs(1, l+1, tr-1, d[l], last1);
-                    } else if (last2 <= d[l]){
-                        ret += dfs(1, l+1, tr-1, d[l]-last2, last1);
-                    }
-                }
-                tr--;
-            }
+            a = (a * a) % MOD;
+            x /= 2;
         }
-        ret %= MOD;
-        memo[flg][l][r][last1][last2] = ret;
-        return ret;
+        return res;
     }
 
+    static long[][] powTbl;
+    static int n;
+    static int[] a;
+    static int[] b;
+    static long[][] memo;
 
-    static int[] d;
+    static long dfs(int idx, int left) {
+        if (idx == n) {
+            return (left == 0) ? 1 : 0;
+        }
+        if (memo[idx][left] != -1) {
+            return memo[idx][left];
+        }
+        long sum = 0;
+        for (int use = 0 ; use <= left ; use++) {
+            long po = (powTbl[use][b[idx]+1] - powTbl[use][a[idx]] + MOD) % MOD;
+            sum += po * dfs(idx+1, left-use) % MOD;
+        }
+        sum %= MOD;
+
+        memo[idx][left] = sum;
+        return sum;
+    }
 
     static class InputReader {
         private InputStream stream;

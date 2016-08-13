@@ -24,3 +24,6 @@
 ### [CSAcademy #010-D Subarray Medians](https://csacademy.com/contest/round-10/#task/subarray-medians)
 逆からやるって発想が出てこなかった。毎回忘れる、ほんとひで
 発想としては逆からやると構築済みの何かが得られて、左に戻して値を削除するのが楽、という
+
+### [ARC059-F - バイナリハック / Unhappy Hacking](http://arc059.contest.atcoder.jp/tasks/arc059_d)
+素直なDPを考えなかった。もちろんそれだけじゃ解けないけど、解が複雑になってるときは考え直す合図。
