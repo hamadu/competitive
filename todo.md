@@ -10,3 +10,7 @@ https://csacademy.com/contest/round-9/#task/101-palindromes (原因不明WA)
 
 (CF367-div2e)
 http://codeforces.com/contest/706/problem/E (定数倍TLE,やる気なし)
+
+(Aimtech-d)
+http://codeforces.com/contest/623/problem/D (やり方分からん)
+

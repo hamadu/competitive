@@ -1,95 +1,20 @@
-package codeforces.aimtech2016.div1;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
-import java.util.List;
 
 /**
- * Created by hama_du on 2016/02/08.
+ * Created by hama_du on 2016/01/30.
  */
-public class A {
+public class G {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int m = in.nextInt();
-        int[][] graph = new int[n][n];
-        for (int i = 0; i < m ; i++) {
-            int a = in.nextInt() - 1;
-            int b = in.nextInt() - 1;
-            graph[a][b] = graph[b][a] = 1;
-        }
-        String ans = solve(graph);
-        if (ans == null) {
-            out.println("No");
-        } else {
-            out.println("Yes");
-            out.println(ans);
-        }
         out.flush();
-    }
-
-
-    static String solve(int[][] graph) {
-        int n = graph.length;
-        List<Integer>[] cog = new List[n];
-        for (int i = 0 ; i < n ; i++) {
-            cog[i] = new ArrayList<>();
-        }
-        for (int i = 0 ; i < n ; i++) {
-            for (int j = i+1 ; j < n ; j++) {
-                if (graph[i][j] == 0) {
-                    cog[i].add(j);
-                    cog[j].add(i);
-                }
-            }
-        }
-
-        int[] color = new int[n];
-        for (int i = 0 ; i < n ; i++) {
-            if (color[i] != 0) {
-                continue;
-            }
-            if (cog[i].size() == 0) {
-                continue;
-            }
-            if (!dfs(i, 1, cog, color)) {
-                return null;
-            }
-        }
-
-        for (int i = 0 ; i < n ; i++) {
-            for (int j = 0; j < n ; j++) {
-                if (color[i] == 1 && color[j] == -1 && graph[i][j] == 1) {
-                    return null;
-                }
-            }
-        }
-        char[] abc = {'c','b','a'};
-        StringBuilder line = new StringBuilder();
-        for (int i = 0 ; i < n ; i++) {
-            line.append(abc[color[i]+1]);
-        }
-        return line.toString();
-    }
-
-
-    private static boolean dfs(int now, int col, List<Integer>[] cog, int[] color) {
-        if (color[now] != 0) {
-            return color[now] == col;
-        }
-        color[now] = col;
-        for (int to : cog[now]) {
-            if (!dfs(to, -col, cog, color)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     static class InputReader {

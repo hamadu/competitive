@@ -1,84 +1,75 @@
-package codeforces.wunderfund2016;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
  * Created by hama_du on 2016/01/30.
  */
-public class C {
+public class F {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long[][] p = new long[n][3];
+        long[] a = new long[n];
+        long[] b = new long[n];
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 2 ; j++) {
-                p[i][j] = in.nextInt();
-            }
-            p[i][2] = i;
+            a[i] = in.nextInt();
         }
         for (int i = 0; i < n ; i++) {
-            int t = (int)(Math.random() * n);
-            for (int j = 0; j < 3 ; j++) {
-                long tmp = p[i][j];
-                p[i][j] = p[t][j];
-                p[t][j] = tmp;
+            b[i] = in.nextInt();
+        }
+        int[] diffA = new int[1000010];
+        int[] diffB = new int[1000010];
+        Arrays.fill(diffA, -2);
+        Arrays.fill(diffB, -2);
+        diffA[0] = -1;
+        diffB[0] = -1;
+
+        int fromA = -1;
+        int toA = -1;
+        int fromB = -1;
+        int toB = -1;
+        int bi = 0;
+        long asum = 0, bsum = 0;
+        for (int i = 0 ; i < n ; i++) {
+            asum += a[i];
+            while (bi < n && bsum + b[bi] <= asum) {
+                bsum += b[bi];
+                bi++;
             }
+            int d = (int)(asum - bsum);
+            if (diffA[d] != -2) {
+                fromA = diffA[d]+1;
+                toA = i;
+                fromB = diffB[d]+1;
+                toB = bi-1;
+                break;
+            }
+            diffA[d] = i;
+            diffB[d] = bi-1;
         }
 
-        Arrays.sort(p, (o1, o2) -> (o1[0] == o2[0]) ? Long.compare(o1[1], o2[1]) : Long.compare(o1[0], o2[0]));
-        long[] ret = solve(p);
-        out.println(String.format("%d %d %d", ret[0], ret[1], ret[2]));
+        String lineA = buildIntegers(fromA, toA);
+        String lineB = buildIntegers(fromB, toB);
+
+        out.println(toA - fromA + 1);
+        out.println(lineA);
+        out.println(toB - fromB + 1);
+        out.println(lineB);
         out.flush();
     }
 
-    static long[] solve(long[][] p) {
-        int n = p.length;
-        Map<Long,List<Long>> deg = new HashMap<>();
-        List<Long> xs = new ArrayList<>();
-        for (int i = 0 ; i < n ; i++) {
-            if (!deg.containsKey(p[i][0])) {
-                deg.put(p[i][0], new ArrayList<>());
-                xs.add(p[i][0]);
-            }
-            deg.get(p[i][0]).add(p[i][2]);
+    private static String buildIntegers(int fromA, int toA) {
+        StringBuilder line = new StringBuilder();
+        for (int i = fromA ; i <= toA ; i++) {
+            line.append(' ').append(i+1);
         }
-
-        for (int i = 0 ; i < xs.size() ; i++) {
-            long x = xs.get(i);
-            if (deg.get(x).size() >= 2) {
-                long a = deg.get(x).get(0);
-                long b = deg.get(x).get(1);
-                long c = -1;
-                if (i-1 >= 0) {
-                    long px = xs.get(i-1);
-                    c = deg.get(px).get(0);
-                } else if (i+1 < xs.size()) {
-                    long px = xs.get(i+1);
-                    c = deg.get(px).get(0);
-                }
-                return new long[]{a+1, b+1, c+1};
-            }
-        }
-
-        for (int i = 0 ; i + 2 < n ; i++) {
-            if (isOK(p[i], p[i+1], p[i+2])) {
-                return new long[]{p[i][2]+1, p[i+1][2]+1, p[i+2][2]+1};
-            }
-        }
-        throw new RuntimeException("arien");
-    }
-
-    private static boolean isOK(long[] p1, long[] p2, long[] p3) {
-        long dx1 = p2[0] - p1[0];
-        long dy1 = p2[1] - p1[1];
-        long dx2 = p3[0] - p1[0];
-        long dy2 = p3[1] - p1[1];
-        return (dy1 * dx2 - dx1 * dy2) != 0;
+        return line.substring(1);
     }
 
     static class InputReader {

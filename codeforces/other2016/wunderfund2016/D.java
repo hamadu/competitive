@@ -1,10 +1,9 @@
-package codeforces.wunderfund2016;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.InputMismatchException;
 
 /**

@@ -1,12 +1,13 @@
-package codeforces.aimtech2016.div1;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
 /**
- * Created by hama_du on 2016/02/08.
+ * Created by hama_du on 2016/01/30.
  */
 public class B {
     public static void main(String[] args) {
@@ -14,97 +15,44 @@ public class B {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        long deleteCost = in.nextInt();
-        long changeCost = in.nextInt();
-        long[] a = new long[n];
-        for (int i = 0 ; i < n ; i++) {
-            a[i] = in.nextLong();
+        int[][] a = new int[n][n];
+        for (int i = 0; i < n ; i++) {
+            for (int j = 0; j < n ; j++) {
+                a[i][j] = in.nextInt();
+            }
         }
-        out.println(solve(a, deleteCost, changeCost));
+
+
+        int[] p = new int[n];
+        Arrays.fill(p, -1);
+        for (int k = 1 ; k <=  n ; k++) {
+            for (int i = 0; i < n ; i++) {
+                if (p[i] >= 1) {
+                    continue;
+                }
+                boolean isOK = true;
+                for (int j = 0; j < n ; j++) {
+                    if (a[i][j] > k) {
+                        isOK = false;
+                    }
+                    if (a[j][i] > k) {
+                        isOK = false;
+                    }
+                }
+                if (isOK) {
+                    p[i] = k;
+                    break;
+                }
+            }
+        }
+
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < n ; i++) {
+            line.append(' ').append(p[i]);
+        }
+        out.println(line.substring(1));
         out.flush();
     }
-
-    private static long solve(long[] a, long deleteCost, long changeCost) {
-        int n = a.length;
-        if (n == 1) {
-            return 0;
-        }
-        Set<Long>[] divisorLeft = new Set[3];
-        Set<Long>[] divisorRight = new Set[3];
-        for (int i = 0 ; i <= 2 ; i++) {
-            divisorLeft[i] = divisors(a[0] + i - 1);
-            divisorRight[i] = divisors(a[n-1] + i - 1);
-        }
-        long left = solveHalf(a, divisorLeft, deleteCost, changeCost);
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            b[i] = a[n-1-i];
-        }
-        long right = solveHalf(b, divisorRight, deleteCost, changeCost);
-
-
-        long min = Math.min(left, right);
-        for (int dl = 0; dl <= 2; dl++) {
-            for (int dr = 0; dr <= 2; dr++) {
-                for (long l : divisorLeft[dl]) {
-                    if (!divisorRight[dr].contains(l)) {
-                        continue;
-                    }
-                    long delete = (n-2)*deleteCost;
-                    long change = (Math.abs(1-dl)+Math.abs(1-dr))*changeCost;
-                    min = Math.min(min, delete+change);
-                    int li = 1;
-                    int ri = n-2;
-                    while (li <= ri) {
-                        for (int d = -1 ; d <= 1 ; d++) {
-                            if ((a[li]+d) % l == 0) {
-
-                            }
-                        }
-                        li++;
-                    }
-                }
-            }
-        }
-        return min;
-    }
-
-
-    static long solveHalf(long[] a, Set<Long>[] divisors, long deleteCost, long changeCost) {
-        int n = a.length;
-        long min = Long.MAX_VALUE;
-        for (int d = 0; d <= 2; d++) {
-            long change = (d == 1) ? 0 : changeCost;
-            long delete = deleteCost * (n - 1);
-            min = Math.min(min, change + delete);
-            for (long l : divisors[d]) {
-                for (int i = 1; i < n; i++) {
-                    if (a[i] % l == 0) {
-                    } else if ((a[i]+1) % l == 0 || (a[i]-1) % l == 0) {
-                        change += changeCost;
-                    } else {
-                        break;
-                    }
-                    delete -= deleteCost;
-                    min = Math.min(min, change + delete);
-                }
-            }
-        }
-        return min;
-    }
-
-    static Set<Long> divisors(long l) {
-        Set<Long> set = new HashSet<>();
-        for (long i = 1 ; i * i <= l ; i++) {
-            if (l % i == 0) {
-                set.add(i);
-                set.add(l / i);
-            }
-        }
-        set.remove(1L);
-        return set;
-    }
-
 
     static class InputReader {
         private InputStream stream;

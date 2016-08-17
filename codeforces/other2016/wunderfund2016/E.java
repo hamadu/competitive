@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;

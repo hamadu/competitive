@@ -1,4 +1,4 @@
-package codeforces.wunderfund2016;
+package codeforces.other2016.wunderfund2016;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,11 +9,20 @@ import java.util.InputMismatchException;
 /**
  * Created by hama_du on 2016/01/30.
  */
-public class G {
+public class A {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
+        int n = in.nextInt();
+        StringBuilder line = new StringBuilder();
+        for (int i = 20 ; i >= 0 ; i--) {
+            if ((n & (1<<i)) >= 1) {
+                line.append(' ');
+                line.append(i+1);
+            }
+        }
+        out.println(line.substring(1));
         out.flush();
     }
 
