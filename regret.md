@@ -27,3 +27,11 @@
 
 ### [ARC059-F - バイナリハック / Unhappy Hacking](http://arc059.contest.atcoder.jp/tasks/arc059_d)
 素直なDPを考えなかった。もちろんそれだけじゃ解けないけど、解が複雑になってるときは考え直す合図。
+
+### [Codeforces #335 Div1C Freelancer's Dreams](http://codeforces.com/contest/605/problem/C)
+凸包に気づかなかった。X日で目標を達成したい -> 1日で行ける範囲は？
+
+### [Codeforces #333 Div1C C. Kleofáš and the n-thlon](http://codeforces.com/contest/601/problem/C)
+期待値ゲーは2通りのやり方がある。片方ダメならもう片方も試す。
+* 期待値を直接DPする
+* 確率を出す、もしくは事象を数え上げて最後に掛け合わせる
