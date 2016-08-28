@@ -1,8 +1,6 @@
 # hamadu/competitive
 
-Solutions for competitive programming problems. (Almost written with Java.)
-
-It may contain WIP(not solved yet) solution. If you found it, please tell me by [adding an issue.](https://github.com/hamadu/competitive/issues/new) (I'll remove it from repository.)
+競技プログラミングで解いた問題のコードのまとめです。以下のサイトに対応。コードはほぼJavaです
 
 * [Aizu Online Judge](http://judge.u-aizu.ac.jp/onlinejudge/)
 * [AtCoder](http://atcoder.jp/)
@@ -11,3 +9,5 @@ It may contain WIP(not solved yet) solution. If you found it, please tell me by 
 * [HackerRank](https://www.hackerrank.com/)
 * [CodeChef](https://www.codechef.com/)
 * [CS Academy](https://csacademy.com/)
+
+
