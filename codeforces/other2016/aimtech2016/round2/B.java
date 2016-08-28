@@ -1,4 +1,4 @@
-package codeforces.other2016.aimtech2016;
+package codeforces.other2016.aimtech2016.round2;
 
 import java.io.IOException;
 import java.io.InputStream;
