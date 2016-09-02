@@ -1,5 +1,27 @@
 # ごっちゃ！(Gotcha)
 
+## 木の数え上げ
+
+ある頂点 v において、子に Set を配置するとき、
+左端の子に配置する頂点を y を Set のなかから適当に選ぶ(例えば、最小の番号を常に選ぶ)と重複なくカウントできる。
+擬似コードはこんな感じになる
+
+```
+dfs(v, Set)
+  ret <- 0
+  y <- Set中の最小値
+  for each subset in Set
+    y が subset に無ければ continue
+    for each x in subset
+       ret <- ret + dfs(x, subset-x) * dfs(v, Set-subset)
+    end
+  end
+end
+```
+
+
+
+
 ## 区間DP
 
 区間上の何かを数え上げたい時、dfs(l+1,r) + dfs(l,r-1) - dfs(l+1,r-1) とすれば重複分を引ける
