@@ -15,14 +15,14 @@ public class C {
         double m;
         String s;
 
-        Conv(String _, double __, String ___) {
-            l = _;
-            m = __;
-            s = ___;
+        Conv(String a, double b, String c) {
+            l = a;
+            m = b;
+            s = c;
             if (m < 1) {
-                l = ___;
-                s = _;
-                m = 1/__;
+                l = c;
+                s = a;
+                m = 1/b;
             }
         }
     }
