@@ -1,122 +1,65 @@
-package codeforces.other2017.technocup2017.round2.div1;
+package codeforces.cf3xx.cf380.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
-public class D {
-
-
-    private static final int INF = 2000000000;
-
-    public static int n;
-    public static int[] a;
-    public static int[] imosL;
-    public static int[] imosR;
-
-    private static int[][][] memo;
-    public static int[][] lastMin;
-
-    private static int foe = 0;
-
-    public static int dfs(int l, int r, int last) {
-        int idx = last-lastMin[l][r];
-        if (memo[l][r][idx] != -INF) {
-            return memo[l][r][idx];
-        }
-
-        int best = -INF;
-        if (l + last + r > n) {
-            best = 0;
-        } else {
-            if (l <= r) {
-                best = Math.max(best, imosL[l+last] - imosL[l] - dfs(l+last, r, last));
-                if (l+last+r+1 <= n) {
-                    best = Math.max(best, imosL[l+last+1] - imosL[l] - dfs(l+last+1, r, last+1));
-                }
-            } else {
-                best = Math.max(best, imosR[r+last] - imosR[r] - dfs(l, r+last, last));
-                if (l+last+r+1 <= n) {
-                    best = Math.max(best, imosR[r+last+1] - imosR[r] - dfs(l, r+last+1, last+1));
-                }
-            }
-        }
-        memo[l][r][idx] = best;
-        return best;
-    }
-
+public class B {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        n = in.nextInt();
-        a = in.nextInts(n);
+        int n = in.nextInt();
+        int m = in.nextInt();
+        int[][] stage = in.nextIntTable(n, m);
 
-        lastMin = new int[n+1][];
-        int[][] lastMax = new int[n+1][];
-        for (int i = 0; i <= n ; i++) {
-            lastMin[i] = new int[n+1-i];
-            lastMax[i] = new int[n+1-i];
-        }
+        int cnt = 0;
 
-        for (int i = 0; i <= n ; i++) {
-            Arrays.fill(lastMin[i], INF);
-            Arrays.fill(lastMax[i], -1);
-        }
-
-        lastMin[0][0] = lastMax[0][0] = 1;
-        for (int i = 0; i <= n ; i++) {
-            for (int j = 0; i+j <= n ; j++) {
-                if (lastMin[i][j] == INF) {
-                    continue;
+        // up,down
+        for (int j = 0 ; j < m ; j++) {
+            boolean hit = false;
+            for (int i = n-1 ; i >= 0 ; i--) {
+                if (stage[i][j] == 1) {
+                    hit = true;
+                } else if (hit) {
+                    cnt++;
                 }
-                for (int ls = lastMin[i][j] ; ls <= lastMax[i][j] ; ls++) {
-                    if (i <= j) {
-                        if (j+i+ls <= n) {
-                            lastMax[i+ls][j] = Math.max(lastMax[i+ls][j], ls);
-                            lastMin[i+ls][j] = Math.min(lastMin[i+ls][j], ls);
-                        }
-                        if (j+i+ls+1 <= n) {
-                            lastMax[i+ls+1][j] = Math.max(lastMax[i+ls+1][j], ls+1);
-                            lastMin[i+ls+1][j] = Math.min(lastMin[i+ls+1][j], ls+1);
-                        }
-                    } else {
-                        if (i+j+ls <= n) {
-                            lastMax[i][j+ls] = Math.max(lastMax[i][j+ls], ls);
-                            lastMin[i][j+ls] = Math.min(lastMin[i][j+ls], ls);
-                        }
-                        if (i+j+ls+1 <= n) {
-                            lastMax[i][j+ls+1] = Math.max(lastMax[i][j+ls+1], ls+1);
-                            lastMin[i][j+ls+1] = Math.min(lastMin[i][j+ls+1], ls+1);
-                        }
-                    }
+            }
+
+            hit = false;
+            for (int i = 0  ; i < n ; i++) {
+                if (stage[i][j] == 1) {
+                    hit = true;
+                } else if (hit) {
+                    cnt++;
                 }
             }
         }
 
-        imosL = new int[n+1];
-        for (int i = 0; i < n ; i++) {
-            imosL[i+1] = imosL[i] + a[i];
-        }
-        imosR = new int[n+1];
-        for (int i = 0; i < n ; i++) {
-            imosR[i+1] = imosR[i] + a[n-i-1];
-        }
+        // left,right
+        for (int i = 0 ; i < n ; i++) {
+            boolean hit = false;
+            for (int j = m-1 ; j >= 0 ; j--) {
+                if (stage[i][j] == 1) {
+                    hit = true;
+                } else if (hit) {
+                    cnt++;
+                }
+            }
 
-        memo = new int[n+1][][];
-        for (int i = 0; i <= n ; i++) {
-            memo[i] = new int[n+1-i][];
-            for (int j = 0; j < memo[i].length ; j++) {
-                int d = lastMax[i][j] - lastMin[i][j] + 1;
-                if (d >= 0) {
-                    memo[i][j] = new int[d];
-                    Arrays.fill(memo[i][j], -INF);
+            hit = false;
+            for (int j = 0  ; j < m ; j++) {
+                if (stage[i][j] == 1) {
+                    hit = true;
+                } else if (hit) {
+                    cnt++;
                 }
             }
         }
 
-        out.println(dfs(0, 0, 1));
+        out.println(cnt);
         out.flush();
     }
 

@@ -1,4 +1,4 @@
-package codeforces.other2017.technocup2017.round2.div1;
+package codeforces.cf3xx.cf380.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,72 +6,59 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 
-public class A {
+public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int k = in.nextInt();
-        int S = in.nextInt();
-        int T = in.nextInt();
-        int[][] cv = in.nextIntTable(n, 2);
-        Arrays.sort(cv, (a, b) -> a[0] - b[0]);
+        int s = in.nextInt()-1;
 
-        int[] gs = in.nextInts(k);
-        for (int i = 0; i < k ; i++) {
-            int tmp = (int)(Math.random()*i);
-            int t = gs[i];
-            gs[i] = gs[tmp];
-            gs[tmp] = t;
-
-        }
-        Arrays.sort(gs);
-
-        int l = 0;
-        int r = n+1;
-        while (r - l > 1) {
-            int med = (l+r)/2;
-            if (isOK(med, cv, gs, S, T)) {
-                r = med;
+        int baseMistake = 0;
+        int freePeople = 0;
+        int[] a = in.nextInts(n);
+        for (int i = 0; i < n ; i++) {
+            if (i == s) {
+                if (a[i] != 0) {
+                    baseMistake++;
+                }
             } else {
-                l = med;
+                if (a[i] == 0) {
+                    baseMistake++;
+                    freePeople++;
+                }
             }
         }
 
-        if (r == n+1) {
-            out.println(-1);
-        } else {
-            out.println(cv[r-1][0]);
+        int max = 0;
+        int[] deg = new int[n+1];
+        for (int i = 0; i < n ; i++) {
+            if (i != s && a[i] >= 1) {
+                deg[a[i]]++;
+                max = Math.max(max, a[i]);
+            }
         }
+
+        int best = n+10;
+        if (max == 0) {
+            best = baseMistake;
+        } else {
+            int otherPeople = n - 1 - freePeople;
+            int gap = 0;
+            for (int maxDepth = 1; maxDepth <= max; maxDepth++) {
+                if (deg[maxDepth] == 0) {
+                    gap++;
+                }
+                otherPeople -= deg[maxDepth];
+                int needFillFromOuter = Math.max(0, gap - freePeople);
+                int needChange = baseMistake + otherPeople + Math.max(0, needFillFromOuter - otherPeople);
+                best = Math.min(best, needChange);
+            }
+        }
+
+        out.println(best);
         out.flush();
     }
-
-    private static boolean isOK(int med, int[][] cv, int[] gs, int S, int T) {
-        int maxCapacity = 0;
-        for (int i = 0; i < med; i++) {
-            maxCapacity = Math.max(maxCapacity, cv[i][1]);
-        }
-
-        long needRoom = Math.max(0, S * 2 - T);
-        for (int i = 0 ; i <= gs.length ; i++) {
-            int go;
-            if (i == 0) {
-                go = gs[i];
-            } else if (i == gs.length) {
-                go = S - gs[i-1];
-            } else {
-                go = gs[i] - gs[i-1];
-            }
-            if (maxCapacity < go) {
-                return false;
-            }
-            int capacityRoom = Math.min(maxCapacity - go, go);
-            needRoom -= capacityRoom;
-        }
-        return needRoom <= 0;
-    }
-
 
     static class InputReader {
         private InputStream stream;

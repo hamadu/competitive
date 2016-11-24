@@ -1,4 +1,4 @@
-package codeforces.other2017.technocup2017.round2.div2;
+package codeforces.cf3xx.cf380.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,62 +6,72 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 
-public class B {
+public class A {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        int m = in.nextInt();
-        int[][] stage = in.nextIntTable(n, m);
+        int k = in.nextInt();
+        int S = in.nextInt();
+        int T = in.nextInt();
+        int[][] cv = in.nextIntTable(n, 2);
+        Arrays.sort(cv, (a, b) -> a[0] - b[0]);
 
-        int cnt = 0;
+        int[] gs = in.nextInts(k);
+        for (int i = 0; i < k ; i++) {
+            int tmp = (int)(Math.random()*i);
+            int t = gs[i];
+            gs[i] = gs[tmp];
+            gs[tmp] = t;
 
-        // up,down
-        for (int j = 0 ; j < m ; j++) {
-            boolean hit = false;
-            for (int i = n-1 ; i >= 0 ; i--) {
-                if (stage[i][j] == 1) {
-                    hit = true;
-                } else if (hit) {
-                    cnt++;
-                }
-            }
+        }
+        Arrays.sort(gs);
 
-            hit = false;
-            for (int i = 0  ; i < n ; i++) {
-                if (stage[i][j] == 1) {
-                    hit = true;
-                } else if (hit) {
-                    cnt++;
-                }
+        int l = 0;
+        int r = n+1;
+        while (r - l > 1) {
+            int med = (l+r)/2;
+            if (isOK(med, cv, gs, S, T)) {
+                r = med;
+            } else {
+                l = med;
             }
         }
 
-        // left,right
-        for (int i = 0 ; i < n ; i++) {
-            boolean hit = false;
-            for (int j = m-1 ; j >= 0 ; j--) {
-                if (stage[i][j] == 1) {
-                    hit = true;
-                } else if (hit) {
-                    cnt++;
-                }
-            }
-
-            hit = false;
-            for (int j = 0  ; j < m ; j++) {
-                if (stage[i][j] == 1) {
-                    hit = true;
-                } else if (hit) {
-                    cnt++;
-                }
-            }
+        if (r == n+1) {
+            out.println(-1);
+        } else {
+            out.println(cv[r-1][0]);
         }
-
-        out.println(cnt);
         out.flush();
     }
+
+    private static boolean isOK(int med, int[][] cv, int[] gs, int S, int T) {
+        int maxCapacity = 0;
+        for (int i = 0; i < med; i++) {
+            maxCapacity = Math.max(maxCapacity, cv[i][1]);
+        }
+
+        long needRoom = Math.max(0, S * 2 - T);
+        for (int i = 0 ; i <= gs.length ; i++) {
+            int go;
+            if (i == 0) {
+                go = gs[i];
+            } else if (i == gs.length) {
+                go = S - gs[i-1];
+            } else {
+                go = gs[i] - gs[i-1];
+            }
+            if (maxCapacity < go) {
+                return false;
+            }
+            int capacityRoom = Math.min(maxCapacity - go, go);
+            needRoom -= capacityRoom;
+        }
+        return needRoom <= 0;
+    }
+
 
     static class InputReader {
         private InputStream stream;

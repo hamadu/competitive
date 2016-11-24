@@ -1,62 +1,122 @@
-package codeforces.other2017.technocup2017.round2.div1;
+package codeforces.cf3xx.cf380.div1;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
-public class C {
+public class D {
+
+
+    private static final int INF = 2000000000;
+
+    public static int n;
+    public static int[] a;
+    public static int[] imosL;
+    public static int[] imosR;
+
+    private static int[][][] memo;
+    public static int[][] lastMin;
+
+    private static int foe = 0;
+
+    public static int dfs(int l, int r, int last) {
+        int idx = last-lastMin[l][r];
+        if (memo[l][r][idx] != -INF) {
+            return memo[l][r][idx];
+        }
+
+        int best = -INF;
+        if (l + last + r > n) {
+            best = 0;
+        } else {
+            if (l <= r) {
+                best = Math.max(best, imosL[l+last] - imosL[l] - dfs(l+last, r, last));
+                if (l+last+r+1 <= n) {
+                    best = Math.max(best, imosL[l+last+1] - imosL[l] - dfs(l+last+1, r, last+1));
+                }
+            } else {
+                best = Math.max(best, imosR[r+last] - imosR[r] - dfs(l, r+last, last));
+                if (l+last+r+1 <= n) {
+                    best = Math.max(best, imosR[r+last+1] - imosR[r] - dfs(l, r+last+1, last+1));
+                }
+            }
+        }
+        memo[l][r][idx] = best;
+        return best;
+    }
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        int s = in.nextInt()-1;
+        n = in.nextInt();
+        a = in.nextInts(n);
 
-        int baseMistake = 0;
-        int freePeople = 0;
-        int[] a = in.nextInts(n);
+        lastMin = new int[n+1][];
+        int[][] lastMax = new int[n+1][];
+        for (int i = 0; i <= n ; i++) {
+            lastMin[i] = new int[n+1-i];
+            lastMax[i] = new int[n+1-i];
+        }
+
+        for (int i = 0; i <= n ; i++) {
+            Arrays.fill(lastMin[i], INF);
+            Arrays.fill(lastMax[i], -1);
+        }
+
+        lastMin[0][0] = lastMax[0][0] = 1;
+        for (int i = 0; i <= n ; i++) {
+            for (int j = 0; i+j <= n ; j++) {
+                if (lastMin[i][j] == INF) {
+                    continue;
+                }
+                for (int ls = lastMin[i][j] ; ls <= lastMax[i][j] ; ls++) {
+                    if (i <= j) {
+                        if (j+i+ls <= n) {
+                            lastMax[i+ls][j] = Math.max(lastMax[i+ls][j], ls);
+                            lastMin[i+ls][j] = Math.min(lastMin[i+ls][j], ls);
+                        }
+                        if (j+i+ls+1 <= n) {
+                            lastMax[i+ls+1][j] = Math.max(lastMax[i+ls+1][j], ls+1);
+                            lastMin[i+ls+1][j] = Math.min(lastMin[i+ls+1][j], ls+1);
+                        }
+                    } else {
+                        if (i+j+ls <= n) {
+                            lastMax[i][j+ls] = Math.max(lastMax[i][j+ls], ls);
+                            lastMin[i][j+ls] = Math.min(lastMin[i][j+ls], ls);
+                        }
+                        if (i+j+ls+1 <= n) {
+                            lastMax[i][j+ls+1] = Math.max(lastMax[i][j+ls+1], ls+1);
+                            lastMin[i][j+ls+1] = Math.min(lastMin[i][j+ls+1], ls+1);
+                        }
+                    }
+                }
+            }
+        }
+
+        imosL = new int[n+1];
         for (int i = 0; i < n ; i++) {
-            if (i == s) {
-                if (a[i] != 0) {
-                    baseMistake++;
-                }
-            } else {
-                if (a[i] == 0) {
-                    baseMistake++;
-                    freePeople++;
-                }
-            }
+            imosL[i+1] = imosL[i] + a[i];
         }
-
-        int max = 0;
-        int[] deg = new int[n+1];
+        imosR = new int[n+1];
         for (int i = 0; i < n ; i++) {
-            if (i != s && a[i] >= 1) {
-                deg[a[i]]++;
-                max = Math.max(max, a[i]);
-            }
+            imosR[i+1] = imosR[i] + a[n-i-1];
         }
 
-        int best = n+10;
-        if (max == 0) {
-            best = baseMistake;
-        } else {
-            int otherPeople = n - 1 - freePeople;
-            int gap = 0;
-            for (int maxDepth = 1; maxDepth <= max; maxDepth++) {
-                if (deg[maxDepth] == 0) {
-                    gap++;
+        memo = new int[n+1][][];
+        for (int i = 0; i <= n ; i++) {
+            memo[i] = new int[n+1-i][];
+            for (int j = 0; j < memo[i].length ; j++) {
+                int d = lastMax[i][j] - lastMin[i][j] + 1;
+                if (d >= 0) {
+                    memo[i][j] = new int[d];
+                    Arrays.fill(memo[i][j], -INF);
                 }
-                otherPeople -= deg[maxDepth];
-                int needFillFromOuter = Math.max(0, gap - freePeople);
-                int needChange = baseMistake + otherPeople + Math.max(0, needFillFromOuter - otherPeople);
-                best = Math.min(best, needChange);
             }
         }
 
-        out.println(best);
+        out.println(dfs(0, 0, 1));
         out.flush();
     }
 

@@ -1,4 +1,4 @@
-package codeforces.other2017.technocup2017.round2.div2;
+package codeforces.cf3xx.cf380.div2;
 
 import java.io.IOException;
 import java.io.InputStream;
