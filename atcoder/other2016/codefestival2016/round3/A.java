@@ -1,182 +1,91 @@
-package atcoder.other2016.codefestival2016.round2;
+package atcoder.other2016.codefestival2016.round3;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.InputMismatchException;
 
-public class B {
-    private static final long INF = (long) 4e9;
-
+public class A {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
         int m = in.nextInt();
+        int k = in.nextInt();
+        long[] a = in.nextLongs(n);
 
-        long[][] table = in.nextLongTable(n, m);
+        long[][] dp = new long[2][n];
+        for (int i = 0; i < n ; i++) {
+            dp[1][i] = a[i];
+        }
 
+        for (int i = 1 ; i < k ; i++) {
+            int fr = i % 2;
+            int to = 1 - fr;
+            Arrays.fill(dp[to], -1);
 
-
-        long sum = 0;
-        long last = 0;
-        for (int i = 0; i+1 < n; i++) {
-            if (m == 1) {
-                if (table[i][0] < table[i+1][0]) {
-                    // ok
-                } else {
-                    sum = -1;
-                    break;
-                }
-                continue;
-            }
-
-            int k = -1;
-            for (int j = 0; j < m ; j++) {
-                if (table[i][j] == table[i+1][j]) {
-                } else {
-                    k = j;
-                    break;
-                }
-            }
-
-            if (k == -1) {
-                // completely same.
-                sum += last+1;
-                last = last+1;
-            } else if (k == 0) {
-                // different at first.
-                if (table[i][k] < table[i+1][k]) {
-                    last = 0;
-                } else {
-                    // NG
-                    sum = -1;
-                    break;
-                }
-            } else {
-                // how many func required actually?
-                long head = table[i][0];
-                long second = head * last + table[i][1];
-                if (second < table[i+1][1]) {
-                    last = 0;
-                    continue;
-                }
-                long req = (second - table[i+1][1] + head - 1) / head;
-                long tos = head * req + table[i+1][1];
-                if (second < tos) {
-                    sum += req;
-                    last = req;
-                    continue;
+            Deque<Integer> deq = new ArrayDeque<>();
+            for (int j = 0 ; j < n ; j++) {
+                if (j >= 1) {
+                    while (deq.size() >= 1 && dp[fr][deq.peekLast()] <= dp[fr][j-1]) {
+                        deq.pollLast();
+                    }
+                    deq.add(j-1);
                 }
 
-                // operation required: req or req+1 times.
-                if (compare(table[i], last, table[i+1], req) == -1) {
-                    sum += req;
-                    last = req;
-                } else {
-                    sum += req+1;
-                    last = req+1;
+                if (j >= i) {
+                    dp[to][j] = dp[fr][deq.peekFirst()]+(a[j]*(i+1));
+                }
+
+                if (j >= m) {
+                    if (deq.size() >= 1 && deq.peekFirst() == j-m) {
+                        deq.pollFirst();
+                    }
                 }
             }
         }
 
-        out.println(sum);
+        long max = 0;
+        for (int i = 0; i < n ; i++) {
+            max = Math.max(max, dp[k%2][i]);
+        }
+
+        out.println(max);
         out.flush();
     }
 
-    private static int compare(long[] a, long opA, long[] b, long opB) {
-        if (opA == 0) {
-            return compare(a, b, opB);
-        } else if (opB == 0) {
-            return -compare(b, opB, a, opA);
-        } else {
-            long dec = Math.min(opA, opB);
-            return compare(a, opA-dec, b, opB-dec);
-        }
-    }
+    /**
+     * Computes slide-window min value.
+     * Returns array of length (|a|-k+1), i-th element means min(a[i],a[i+1],...,a[i+k-1]).
+     *
+     * @param a original array
+     * @param k window size
+     * @return min values
+     */
+    public static int[] slideMin(int[] a, int k) {
+        int n = a.length;
 
-    private static int compare(long[] a, long[] b, long opB) {
-        int n = b.length;
-        long[] tob = b.clone();
-        if (opB <= 32) {
-            for (int f = 0 ; f < opB ; f++) {
-                operate(tob);
+        Deque<Integer> deq = new ArrayDeque<>();
+        int[] slideMin = new int[n-k+1];
+        for (int i = 0; i < n; i++) {
+            while (deq.size() >= 1 && a[deq.peekLast()] >= a[i]) {
+                deq.pollLast();
             }
-            for (int i = 0 ; i < n ; i++) {
-                if (a[i] != tob[i]) {
-                    return (a[i] < tob[i]) ? -1 : 1;
-                }
-            }
-        } else {
-            for (int k = 1 ; k < n ; k++) {
-                long sum = 0;
-                int d = 0;
-                for (int part = k ; part >= 0 ; part--) {
-                    long left = opB+d-1;
-                    long right = d;
-                    long comb = comb(left, right);
-                    if (comb >= INF || b[part] >= INF / comb) {
-                        sum = INF;
-                        break;
-                    }
-                    sum += b[part] * comb;
-                    if (sum >= INF) {
-                        sum = INF;
-                        break;
-                    }
-                    d++;
-                }
-                tob[k] = sum;
-                if (a[k] != tob[k]) {
-                    return (a[k] < tob[k]) ? -1 : 1;
+            deq.add(i);
+
+            if (i-k+1 >= 0) {
+                int top = deq.peekFirst();
+                slideMin[i-k+1] = a[top];
+                if (top == i-k+1) {
+                    deq.pollFirst();
                 }
             }
         }
-        return 0;
-    }
-
-    static final int MOD = 1000000007;
-
-    static long pow(long a, long x) {
-        long res = 1;
-        while (x > 0) {
-            if (x%2 != 0) {
-                res = (res*a)%MOD;
-            }
-            a = (a*a)%MOD;
-            x /= 2;
-        }
-        return res;
-    }
-
-
-    static long comb(long n, long r) {
-        BigInteger up = BigInteger.ONE;
-        BigInteger dw = BigInteger.ONE;
-        for (int i = 0; i < r ; i++) {
-            up = up.multiply(BigInteger.valueOf(n-i));
-            dw = dw.multiply(BigInteger.valueOf(i+1));
-        }
-        BigInteger ret = up.divide(dw);
-        if (ret.compareTo(BigInteger.valueOf(INF)) == -1) {
-            return ret.longValue();
-        }
-        return INF;
-    }
-
-
-    private static void operate(long[] a) {
-        long psum = a[0];
-        for (int i = 1  ; i < a.length ; i++) {
-            psum += a[i];
-            if (psum >= INF) {
-                psum = INF;
-            }
-            a[i] = psum;
-        }
+        return slideMin;
     }
 
     static class InputReader {
