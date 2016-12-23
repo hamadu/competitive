@@ -3,10 +3,11 @@ package atcoder.other2016.codefestival2016.round3;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
 public class B {
+    private static final int INF = 10000000;
+
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
@@ -35,15 +36,136 @@ public class B {
     }
 
     private static int solve(int[] base, char[] s) {
+        int n = base.length;
+        int sum = 0;
+        for (int i = 0; i < n ; i++) {
+            sum += base[i];
+        }
+        if (sum == 0 || sum == n) {
+            return sum == 0 ? 0 : 1;
+        }
 
 
 
-        return 0;
+        Queue<Segment>[] onezero = new Queue[2];
+        for (int i = 0; i < 2 ; i++) {
+            onezero[i] = new PriorityQueue<>();
+        }
+        TreeSet<Segment> tree = new TreeSet<>((a, b) -> a.left - b.left);
+
+        Segment head = null;
+        Segment tail = null;
+        for (int i = 0; i < n ; ) {
+            int j = i;
+            while (j < n && base[i] == base[j]) {
+                j++;
+            }
+            int fr = i == 0 ? -INF : i;
+            int to = j == n ? INF : j-1;
+            Segment seg = new Segment(fr, to, base[i]);
+            onezero[base[i]].add(seg);
+            tree.add(seg);
+            if (fr == -INF) {
+                head = seg;
+            } else if (to == INF) {
+                tail = seg;
+            }
+            i = j;
+        }
+
+        int plus = 0;
+        int minus = 0;
+
+        int diff = 0;
+        for (int i = 0; i < s.length ; i++) {
+            int my, ot;
+            if (s[i] == 'M') {
+                diff++;
+                plus++;
+                my = 0;
+                ot = 1;
+            } else {
+                diff--;
+                minus++;
+                my = 1;
+                ot = 0;
+            }
+
+            while (onezero[my].size() >= 1) {
+                Segment seg = onezero[my].peek();
+                if (!seg.available) {
+                    onezero[my].poll();
+                    continue;
+                }
+                int[] tl = seg.eval(plus, minus);
+                if (tl[0] > tl[1]) {
+                    onezero[my].poll();
+                    Segment L = tree.lower(seg);
+                    Segment R = tree.higher(seg);
+                    seg.available = false;
+                    L.available = false;
+                    R.available = false;
+                    tree.remove(seg);
+                    tree.remove(L);
+                    tree.remove(R);
+
+                    Segment newSeg = new Segment(L.left, R.right, L.value);
+                    newSeg.cnt = L.cnt + R.cnt;
+                    if (newSeg.value == 1) {
+                        newSeg.cnt += diff;
+                    } else {
+                        newSeg.cnt -= diff;
+                    }
+
+                    tree.add(newSeg);
+                    onezero[ot].add(newSeg);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        for (Segment t : tree) {
+            int[] fin = t.eval(plus, minus);
+            if (fin[0] <= 0 && 0 <= fin[1]) {
+                return t.value;
+            }
+        }
+        throw new RuntimeException("arien");
     }
 
-    static class Segment {
+    static class Segment implements Comparable<Segment> {
+        int left;
+        int right;
+        int value;
         int cnt;
+        boolean available;
 
+        public Segment(int fr, int to, int v) {
+            left = fr;
+            right = to;
+            value = v;
+            cnt = to-fr+1;
+            available = true;
+        }
+
+        @Override
+        public int compareTo(Segment o) {
+            return cnt - o.cnt;
+        }
+
+        public int[] eval(int plus, int minus) {
+            int tl = left;
+            int tr = right;
+            if (value == 0) {
+                tl -= minus;
+                tr -= plus;
+            } else {
+                tl -= plus;
+                tr -= minus;
+            }
+            return new int[]{tl, tr};
+        }
     }
 
     static class InputReader {
