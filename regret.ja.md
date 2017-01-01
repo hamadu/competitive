@@ -38,3 +38,13 @@
 
 ### [AGC006 C - Rabbit Exercise](http://agc006.contest.atcoder.jp/tasks/agc006_c)
 差分を取るという発想が出てこなかった。式の形をよく見ずに、間違った方法で解こうとしてしまった
+
+### [AGC008 C - Tetromino Tiling](http://agc008.contest.atcoder.jp/tasks/agc008_c)
+どうやら僕は何かを貪欲に詰め込む問題をすごく苦手としているらしい。
+前回の[ドワコンでも落としている。](http://dwacon2017-prelims.contest.atcoder.jp/tasks/dwango2017qual_c)
+想定外の詰め方が無いか探すのも良いが、まずは解法の実装が正しいかどうか確認しよう。
+楽に実装するコツは、関連するモノの数の偶奇で場合分けしたり、モノを1個ずつ使う方法を0or1回使って試したりとか。
+
+### [SRM703 Div1Med CoastGuard](https://community.topcoder.com/stat?c=problem_statement&pm=14458&rd=16848)
+y座標の降順に処理するという発想が出てこなかった。**ソート順は必ず全部試そう。**
+

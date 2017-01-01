@@ -1,98 +1,71 @@
-package codeforces.other2016.wunderfund2016;
+package atcoder.other2016.xmas2016;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.InputMismatchException;
+import java.util.*;
 
-/**
- * Created by hama_du on 2016/01/30.
- */
-public class F {
+public class E {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        int n = in.nextInt();
-        long[] a = new long[n];
-        long[] b = new long[n];
-        for (int i = 0; i < n ; i++) {
-            a[i] = in.nextInt();
-        }
-        for (int i = 0; i < n ; i++) {
-            b[i] = in.nextInt();
-        }
-        long sumA = 0;
-        long sumB = 0;
-        for (int i = 0; i < n ; i++) {
-            sumA += a[i];
-            sumB += b[i];
-        }
-        int[] segments = sumA <= sumB ? solve(a, b) : solve(b, a);
-        int fromA = segments[0];
-        int toA = segments[1];
-        int fromB = segments[2];
-        int toB = segments[3];
-        if (sumA > sumB) {
-            fromA = segments[2];
-            toA = segments[3];
-            fromB = segments[0];
-            toB = segments[1];
+        for (int k = 0 ; k < 200 ; k++) {
+            solve(in, out);
         }
 
-        String lineA = buildIntegers(fromA, toA);
-        String lineB = buildIntegers(fromB, toB);
-
-        out.println(toA - fromA + 1);
-        out.println(lineA);
-        out.println(toB - fromB + 1);
-        out.println(lineB);
         out.flush();
     }
 
-    private static int[] solve(long[] a, long[] b) {
-        int[] diffA = new int[1000010];
-        int[] diffB = new int[1000010];
-        Arrays.fill(diffA, -2);
-        Arrays.fill(diffB, -2);
-        diffA[0] = -1;
-        diffB[0] = -1;
-
-        int n = a.length;
-        int fromA = -1;
-        int toA = -1;
-        int fromB = -1;
-        int toB = -1;
-        int bi = 0;
-        long asum = 0, bsum = 0;
-        for (int i = 0 ; i < n ; i++) {
-            asum += a[i];
-            while (bi < n && bsum + b[bi] <= asum) {
-                bsum += b[bi];
-                bi++;
+    private static void solve(InputReader in, PrintWriter out) {
+        int[][] unagi = new int[30][50];
+        for (int i = 0; i < unagi.length ; i++) {
+            for (int j = 0; j < unagi[0].length ; j++) {
+                unagi[i][j] = in.nextInt();
             }
-            int d = (int)(asum - bsum);
-            if (diffA[d] != -2) {
-                fromA = diffA[d]+1;
-                toA = i;
-                fromB = diffB[d]+1;
-                toB = bi-1;
-                break;
-            }
-            diffA[d] = i;
-            diffB[d] = bi-1;
         }
-        return new int[]{fromA, toA, fromB, toB};
 
-    }
+        int[][] score = new int[30][2];
+        for (int i = 0; i < 30 ; i++) {
+            score[i][0] = i;
+        }
 
-    private static String buildIntegers(int fromA, int toA) {
+        for (int i = 0; i < 50 ; i++) {
+            int[] a = new int[4];
+            for (int j = 0; j < 30 ; j++) {
+                a[unagi[j][i]]++;
+            }
+            int max = Math.max(Math.max(a[0], a[1]), Math.max(a[2], a[3]));
+            for (int j = 0; j < 30 ; j++) {
+                score[j][1] += (a[unagi[j][i]] == max ? 1 : 0);
+            }
+        }
+
+        Arrays.sort(score, (a, b) -> b[1] - a[1]);
+        
+        int[] ans = new int[50];
+        for (int r = 0 ; r < 50 ; r++) {
+            int[] a = new int[4];
+            for (int i = 0; i < 10; i++) {
+                int id = score[i][0];
+                a[unagi[id][r]] += (i < 10) ? 2 : 1;
+            }
+            int max = Math.max(Math.max(a[0], a[1]), Math.max(a[2], a[3]));
+            List<Integer> dd = new ArrayList<>();
+            for (int i = 0; i < 4 ; i++) {
+                if (a[i] == max) {
+                    dd.add(i);
+                }
+            }
+            Collections.shuffle(dd);
+            ans[r] = dd.get(0);
+        }
+
         StringBuilder line = new StringBuilder();
-        for (int i = fromA ; i <= toA ; i++) {
-            line.append(' ').append(i+1);
+        for (int i = 0; i < ans.length; i++) {
+            line.append(' ').append(ans[i]);
         }
-        return line.substring(1);
+        out.println(line.substring(1));
     }
 
     static class InputReader {
@@ -103,6 +76,50 @@ public class F {
 
         public InputReader(InputStream stream) {
             this.stream = stream;
+        }
+
+        private int[] nextInts(int n) {
+            int[] ret = new int[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextInt();
+            }
+            return ret;
+        }
+
+        private int[][] nextIntTable(int n, int m) {
+            int[][] ret = new int[n][m];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    ret[i][j] = nextInt();
+                }
+            }
+            return ret;
+        }
+
+        private long[] nextLongs(int n) {
+            long[] ret = new long[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextLong();
+            }
+            return ret;
+        }
+
+        private long[][] nextLongTable(int n, int m) {
+            long[][] ret = new long[n][m];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    ret[i][j] = nextLong();
+                }
+            }
+            return ret;
+        }
+
+        private double[] nextDoubles(int n) {
+            double[] ret = new double[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextDouble();
+            }
+            return ret;
         }
 
         private int next() {
@@ -163,7 +180,7 @@ public class F {
                 res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
-            return res * sgn;
+            return res*sgn;
         }
 
         public long nextLong() {
@@ -183,7 +200,11 @@ public class F {
                 res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
-            return res * sgn;
+            return res*sgn;
+        }
+
+        public double nextDouble() {
+            return Double.valueOf(nextToken());
         }
 
         public boolean isSpaceChar(int c) {

@@ -5,6 +5,17 @@
 .idea
 /out
 
+# Topcoder Greed Plugin
+/**/*.html
+/**/*.sample
+
+# JOI
+a.out
+/**/*.dSYM/**
+/**/in/**
+/**/out/**
+/**/sample/**
+
 # private 
 /paiza/skillcheck/**/*
 /Main.java
