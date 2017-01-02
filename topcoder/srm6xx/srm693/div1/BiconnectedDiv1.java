@@ -1,10 +1,6 @@
 package topcoder.srm6xx.srm693.div1;
 
-/**
- * Created by hama_du
- */
-import java.io.*;
-import java.util.*;
+import java.util.Arrays;
 
 public class BiconnectedDiv1 {
     private static final int INF = (int)1e8;

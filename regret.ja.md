@@ -48,3 +48,5 @@
 ### [SRM703 Div1Med CoastGuard](https://community.topcoder.com/stat?c=problem_statement&pm=14458&rd=16848)
 y座標の降順に処理するという発想が出てこなかった。**ソート順は必ず全部試そう。**
 
+### [SRM702 Div1Med LinenCenter](https://community.topcoder.com/stat?c=problem_statement&pm=14273&rd=16747)
+ダブリングDPが発想できなかった。まず制約を無視してDPを考えて、dp[何か][ほげ] の何かが大きめ(>=10^6〜9)のときは常に試すべきだ。
