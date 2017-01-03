@@ -5,9 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by hama_du on 2016/05/30.
- */
 public class Moneymanager {
     public int getbest(int[] a, int[] b, int X) {
         List<int[]> w = new ArrayList<>();
@@ -19,7 +16,7 @@ public class Moneymanager {
 
         int bsum = w.stream().mapToInt(wi -> wi[1]).sum();
         int best = 0;
-        for (int bs = n / 2 ; bs <= 10 * n / 2 ; bs++) {
+        for (int Y = n / 2 ; Y <= 10 * n / 2 ; Y++) {
             int[][][] dp = new int[n+1][n/2+1][n*10+1];
             for (int i = 0; i <= n ; i++) {
                 for (int j = 0; j <= n/2; j++) {
@@ -33,22 +30,22 @@ public class Moneymanager {
                 int A = w.get(i)[0];
                 int B = w.get(i)[1];
                 for (int c = 0; c <= n / 2 ; c++) {
-                    for (int lb = 0; lb <= bs ; lb++) {
+                    for (int lb = 0; lb <= Y ; lb++) {
                         if (dp[i][c][lb] < 0) {
                             continue;
                         }
                         int base = dp[i][c][lb];
-                        if (c < n / 2 && lb+B <= bs) {
+                        if (c < n / 2 && lb+B <= Y) {
                             dp[i+1][c+1][lb+B] = Math.max(dp[i+1][c+1][lb+B], base + (bsum - lb) * A);
                         }
 
                         int rb = partSum - lb;
-                        dp[i+1][c][lb] = Math.max(dp[i+1][c][lb], base + (bsum - bs - rb) * A + X * B);
+                        dp[i+1][c][lb] = Math.max(dp[i+1][c][lb], base + (bsum - Y - rb) * A + X * B);
                     }
                 }
                 partSum += B;
             }
-            best = Math.max(best, dp[n][n/2][bs]);
+            best = Math.max(best, dp[n][n/2][Y]);
         }
         return best;
     }
