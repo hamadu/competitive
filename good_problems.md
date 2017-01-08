@@ -14,3 +14,6 @@
 
 ## Convex Hull Trick
 - http://codeforces.com/contest/660/problem/F
+
+## Segment to weighted graph
+- http://www.ioi-jp.org/camp/2015/2015-sp-tasks/2015-sp-d2.pdf (合鍵[Keys])
