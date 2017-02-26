@@ -20,3 +20,6 @@
 
 ## Bitmasks
 - http://codeforces.com/contest/663/problem/E
+
+## Other
+- http://mujin-pc-2017.contest.atcoder.jp/tasks/mujin_pc_2017_c
