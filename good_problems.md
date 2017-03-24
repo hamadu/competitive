@@ -11,6 +11,7 @@
 ## Graphs
 - http://codeforces.com/contest/708/problem/C
 - http://ddcc2016-final.contest.atcoder.jp/tasks/ddcc_2016_final_e
+- https://csacademy.com/contest/archive/#task/bounded-diameter-trees/ (Try to solve N <= 50 first. It's still good for practice.)
 
 ## Convex Hull Trick
 - http://codeforces.com/contest/660/problem/F
