@@ -1,9 +1,11 @@
 ## Number theory
 - http://kupc2013.contest.atcoder.jp/tasks/kupc2013_h
   - editorial : http://www.kupc.jp/editorial/2013/H.pdf
+- https://csacademy.com/contest/archive/#task/gcd-on-a-circle
 
 ## Combinatorics
 - https://csacademy.com/contest/round-9/#task/sum-of-squares
+- https://csacademy.com/contest/archive/#task/k-consecutive
 
 ## Games
 - http://codeforces.com/contest/594/problem/A
@@ -12,6 +14,8 @@
 - http://codeforces.com/contest/708/problem/C
 - http://ddcc2016-final.contest.atcoder.jp/tasks/ddcc_2016_final_e
 - https://csacademy.com/contest/archive/#task/bounded-diameter-trees/ (Try to solve N <= 50 first. It's still good for practice.)
+- https://csacademy.com/contest/archive/#task/tree_game
+- https://csacademy.com/contest/archive/#task/special-mvc (Heavy implementation)
 
 ## Convex Hull Trick
 - http://codeforces.com/contest/660/problem/F
