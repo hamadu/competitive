@@ -1,85 +1,36 @@
-package atcoder.arc.arc021;
+package atcoder.arc.arc073;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.InputMismatchException;
-import java.util.PriorityQueue;
-import java.util.Queue;
 
-/**
- * Created by hama_du on 2017/05/01.
- */
 public class C {
     public static void main(String[] args) {
         InputReader in = new InputReader(System.in);
         PrintWriter out = new PrintWriter(System.out);
 
-        long k = in.nextInt();
         int n = in.nextInt();
-        long[][] a = new long[n][2];
+        int T = in.nextInt();
+        int[] t = in.nextInts(n);
+        long fromWater = 0;
+        long toWater = 0;
+        long total = 0;
         for (int i = 0; i < n ; i++) {
-            for (int j = 0; j < 2 ; j++) {
-                a[i][j] = in.nextInt();
+            if (fromWater < t[i] && t[i] <= toWater) {
+                total += t[i]-fromWater;
+            } else if (toWater <= t[i]) {
+                total += toWater - fromWater;
             }
+            fromWater = t[i];
+            toWater = t[i] + T;
         }
+        total += T;
 
-        long min = 0;
-        long max = (long)(1e11);
-        while (max - min > 1) {
-            long med = (min + max) / 2;
-            if (isOK(a, med, k)) {
-                max = med;
-            } else {
-                min = med;
-            }
-        }
-        debug(min,max);
 
-        long build = 0;
-        long money = 0;
-        for (int i = 0; i < n ; i++) {
-            money += cost(a[i][0], a[i][1], min);
-            build += count(a[i][0], a[i][1], min);
-        }
-        money += (k-build)*max;
-
-        out.println(money);
+        out.println(total);
         out.flush();
-    }
-
-    private static boolean isOK(long[][] a, long med, long k) {
-        int n = a.length;
-        long sum = 0;
-        for (int i = 0; i < n ; i++) {
-            sum += count(a[i][0], a[i][1], med);
-            if (sum >= k) {
-                return true;
-            }
-        }
-        return sum >= k;
-    }
-
-    private static long count(long a, long d, long upto) {
-        if (a > upto) {
-            return 0;
-        }
-        return (upto - a) / d + 1;
-    }
-
-    private static long cost(long a, long d, long upto) {
-        long count = count(a, d, upto);
-        if (count == 0) {
-            return 0;
-        }
-        long updw = (a + (a + d * (count - 1)));
-        if (updw % 2 == 0) {
-            updw /= 2;
-        } else {
-            count /= 2;
-        }
-        return updw * count;
     }
 
     static class InputReader {
@@ -90,6 +41,50 @@ public class C {
 
         public InputReader(InputStream stream) {
             this.stream = stream;
+        }
+
+        private int[] nextInts(int n) {
+            int[] ret = new int[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextInt();
+            }
+            return ret;
+        }
+
+        private int[][] nextIntTable(int n, int m) {
+            int[][] ret = new int[n][m];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    ret[i][j] = nextInt();
+                }
+            }
+            return ret;
+        }
+
+        private long[] nextLongs(int n) {
+            long[] ret = new long[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextLong();
+            }
+            return ret;
+        }
+
+        private long[][] nextLongTable(int n, int m) {
+            long[][] ret = new long[n][m];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    ret[i][j] = nextLong();
+                }
+            }
+            return ret;
+        }
+
+        private double[] nextDoubles(int n) {
+            double[] ret = new double[n];
+            for (int i = 0; i < n; i++) {
+                ret[i] = nextDouble();
+            }
+            return ret;
         }
 
         private int next() {
@@ -150,7 +145,7 @@ public class C {
                 res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
-            return res * sgn;
+            return res*sgn;
         }
 
         public long nextLong() {
@@ -170,7 +165,11 @@ public class C {
                 res += c-'0';
                 c = next();
             } while (!isSpaceChar(c));
-            return res * sgn;
+            return res*sgn;
+        }
+
+        public double nextDouble() {
+            return Double.valueOf(nextToken());
         }
 
         public boolean isSpaceChar(int c) {
