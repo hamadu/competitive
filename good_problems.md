@@ -2,6 +2,7 @@
 - http://kupc2013.contest.atcoder.jp/tasks/kupc2013_h
   - editorial : http://www.kupc.jp/editorial/2013/H.pdf
 - https://csacademy.com/contest/archive/#task/gcd-on-a-circle
+- http://codeforces.com/contest/763/problem/C
 
 ## Combinatorics
 - https://csacademy.com/contest/round-9/#task/sum-of-squares
@@ -9,6 +10,7 @@
 
 ## Games
 - http://codeforces.com/contest/594/problem/A
+- http://codeforces.com/contest/794/problem/C
 
 ## Graphs
 - http://codeforces.com/contest/708/problem/C
@@ -25,6 +27,9 @@
 
 ## Bitmasks
 - http://codeforces.com/contest/663/problem/E
+
+## Implementation
+- http://codeforces.com/contest/763/problem/D
 
 ## Other
 - http://mujin-pc-2017.contest.atcoder.jp/tasks/mujin_pc_2017_c
