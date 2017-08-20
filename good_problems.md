@@ -7,10 +7,12 @@
 ## Combinatorics
 - https://csacademy.com/contest/round-9/#task/sum-of-squares
 - https://csacademy.com/contest/archive/#task/k-consecutive
+- http://agc018.contest.atcoder.jp/tasks/agc018_f
 
 ## Games
 - http://codeforces.com/contest/594/problem/A
 - http://codeforces.com/contest/794/problem/C
+- http://agc017.contest.atcoder.jp/tasks/agc017_d
 
 ## Graphs
 - http://codeforces.com/contest/708/problem/C
@@ -35,3 +37,4 @@
 - http://mujin-pc-2017.contest.atcoder.jp/tasks/mujin_pc_2017_c
 - http://yahoo-procon2017-qual.contest.atcoder.jp/tasks/yahoo_procon2017_qual_e
 - https://csacademy.com/contest/archive/#task/interval-expected-max (You should come-up with O(N√N) solution.)
+- http://agc017.contest.atcoder.jp/tasks/agc017_c
